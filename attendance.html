@@ -4,9 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>출퇴근 기록</title>
+<link rel="manifest" href="/attendance/manifest.json">
+<link rel="apple-touch-icon" href="/attendance/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="출퇴근">
+<meta name="theme-color" content="#0d0d0f">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&family=DM+Mono:wght@400;500&display=swap');
- 
+
 :root {
   --bg: #0d0d0f;
   --surface: #16161a;
@@ -17,10 +24,10 @@
   --out: #ff5a5a;
   --accent: #7c6bff;
 }
- 
+
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', sans-serif; min-height: 100dvh; }
- 
+
 /* ── 탭바 ── */
 .tab-bar {
   position: fixed; bottom: 0; left: 0; right: 0;
@@ -35,15 +42,15 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', s
 }
 .tab-btn.active { color: var(--in); }
 .tab-icon { font-size: 20px; }
- 
+
 /* ── 페이지 ── */
 .page { display: none; padding: 20px 16px 90px; max-width: 480px; margin: 0 auto; }
 .page.active { display: flex; flex-direction: column; gap: 16px; }
- 
+
 /* ── 카드 ── */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 18px 20px; }
 .card-title { font-size: 11px; font-weight: 400; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 14px; }
- 
+
 /* ── 헤더/시계 ── */
 .header { text-align: center; padding: 16px 0 0; }
 .header h1 { font-size: 12px; font-weight: 400; letter-spacing: 0.25em; color: var(--muted); }
@@ -51,7 +58,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', s
 .clock-card { text-align: center; }
 .clock { font-family: 'DM Mono', monospace; font-size: 50px; font-weight: 500; letter-spacing: -1px; line-height: 1; }
 .clock-sec { font-size: 28px; color: var(--muted); }
- 
+
 /* ── 버튼 ── */
 .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .btn {
@@ -64,7 +71,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', s
 .btn-in  { background: rgba(0,229,160,0.08); border: 1.5px solid rgba(0,229,160,0.3); color: var(--in); }
 .btn-out { background: rgba(255,90,90,0.08); border: 1.5px solid rgba(255,90,90,0.3); color: var(--out); }
 .btn-icon { font-size: 28px; } .btn-label { font-size: 18px; font-weight: 700; } .btn-sub { font-size: 10px; opacity: 0.6; }
- 
+
 /* ── 오늘 기록 ── */
 .today-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); }
 .today-row:last-child { border-bottom: none; }
@@ -72,14 +79,14 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', s
 .t-val { font-family: 'DM Mono', monospace; font-size: 15px; font-weight: 500; }
 .t-val.in { color: var(--in); } .t-val.out { color: var(--out); }
 .t-task { font-size: 13px; color: var(--accent); max-width: 60%; text-align: right; word-break: break-all; }
- 
+
 /* ── 과제 배지 ── */
 .task-badge {
   display: inline-block; background: rgba(124,107,255,0.15);
   border: 1px solid rgba(124,107,255,0.4); color: var(--accent);
   font-size: 12px; padding: 4px 10px; border-radius: 20px; margin-bottom: 12px;
 }
- 
+
 /* ── 달력 ── */
 .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
 .cal-nav button { background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 6px 12px; cursor: pointer; font-size: 16px; }
@@ -103,7 +110,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', s
 .cal-day.in-task.has-record { background: rgba(124,107,255,0.15); }
 .cal-day.short { background: rgba(255,90,90,0.18) !important; border: 1px solid rgba(255,90,90,0.35); }
 .cal-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--in); }
- 
+
 /* ── 과제 진행현황 ── */
 .progress-bar-wrap { background: var(--border); border-radius: 20px; height: 8px; margin: 10px 0 14px; overflow: hidden; }
 .progress-bar { height: 100%; border-radius: 20px; background: var(--in); transition: width 0.5s; }
@@ -115,7 +122,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', s
 .p-val.green { color: var(--in); }
 .p-val.red   { color: var(--out); }
 .p-val.accent { color: var(--accent); }
- 
+
 /* ── 날짜 상세 ── */
 .detail-panel { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-top: 12px; display: none; }
 .detail-panel.show { display: block; }
@@ -126,7 +133,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', s
 .detail-val { font-family: 'DM Mono', monospace; font-size: 14px; }
 .detail-val.in { color: var(--in); } .detail-val.out { color: var(--out); }
 .detail-task-name { font-size: 13px; color: var(--accent); font-weight: 700; }
- 
+
 /* ── 과제 관리 ── */
 .input-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
 .input-label { font-size: 12px; color: var(--muted); }
@@ -153,17 +160,17 @@ input::placeholder { color: var(--border); }
 .task-period { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
 .task-del { background: none; border: none; color: var(--out); font-size: 18px; cursor: pointer; padding: 4px 8px; }
 .no-task { text-align: center; color: var(--muted); padding: 20px 0; font-size: 13px; }
- 
+
 /* ── 통계 ── */
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .stat-item { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
 .stat-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
 .stat-value { font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 500; }
 .stat-value.green { color: var(--in); } .stat-value.red { color: var(--out); }
- 
+
 /* ── 설정 ── */
 .save-btn { width: 100%; margin-top: 8px; background: var(--border); border: none; border-radius: 10px; padding: 13px; color: var(--text); font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; }
- 
+
 /* ── 토스트 ── */
 .toast {
   position: fixed; bottom: 80px; left: 50%;
@@ -181,27 +188,27 @@ input::placeholder { color: var(--border); }
 </style>
 </head>
 <body>
- 
+
 <!-- ── 홈 ── -->
 <div class="page active" id="page-home">
   <div class="header">
     <h1>⚡ 출퇴근 기록기</h1>
     <div class="date-now" id="dateDisplay"></div>
   </div>
- 
+
   <div class="card clock-card">
     <div class="clock">
       <span id="clockH"></span>:<span id="clockM"></span><span class="clock-sec">:<span id="clockS"></span></span>
     </div>
   </div>
- 
+
   <!-- 오늘 과제 표시 -->
   <div class="card" id="todayTaskCard" style="display:none">
     <div class="card-title">📁 오늘의 과제</div>
     <div class="task-badge" id="todayTaskBadge"></div>
     <div style="font-size:12px;color:var(--muted)" id="todayTaskPeriod"></div>
   </div>
- 
+
   <div class="btn-row">
     <button class="btn btn-in"  onclick="record('in')">
       <span class="btn-icon">☀️</span><span class="btn-label">출근</span><span class="btn-sub">CHECK IN</span>
@@ -210,7 +217,7 @@ input::placeholder { color: var(--border); }
       <span class="btn-icon">🌙</span><span class="btn-label">퇴근</span><span class="btn-sub">CHECK OUT</span>
     </button>
   </div>
- 
+
   <div class="card">
     <div class="card-title">📋 오늘 기록</div>
     <div class="today-row"><span class="t-label">출근</span><span class="t-val in" id="todayIn">--:--</span></div>
@@ -220,7 +227,7 @@ input::placeholder { color: var(--border); }
       <span class="t-val" id="todayReal">-</span>
     </div>
   </div>
- 
+
   <div class="card">
     <div class="card-title">🔗 구글 시트 연결</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Apps Script 웹앱 URL</div>
@@ -228,7 +235,7 @@ input::placeholder { color: var(--border); }
     <button class="save-btn" onclick="saveSettings()">저장</button>
   </div>
 </div>
- 
+
 <!-- ── 달력 ── -->
 <div class="page" id="page-cal">
   <div class="card">
@@ -242,7 +249,7 @@ input::placeholder { color: var(--border); }
       <div class="cal-dow">수</div><div class="cal-dow">목</div><div class="cal-dow">금</div><div class="cal-dow">토</div>
     </div>
     <div class="cal-grid" id="calGrid"></div>
- 
+
     <div class="detail-panel" id="detailPanel">
       <div class="detail-date" id="detailDate"></div>
       <div id="detailTaskBadgeWrap"></div>
@@ -251,13 +258,13 @@ input::placeholder { color: var(--border); }
       <div class="detail-row"><span class="detail-label">실근무</span><span class="detail-val" id="detailReal">-</span></div>
     </div>
   </div>
- 
+
   <!-- 이달 통계 -->
   <div class="card">
     <div class="card-title" id="calStatTitle">📊 이달 요약</div>
     <div class="stat-grid" id="calStatGrid"></div>
   </div>
- 
+
   <!-- 과제 진행현황 -->
   <div class="card" id="taskProgressCard" style="display:none">
     <div class="card-title" id="taskProgressTitle">📁 과제 진행현황</div>
@@ -270,7 +277,7 @@ input::placeholder { color: var(--border); }
     <div class="progress-row"><span class="p-label">남은 근무일</span><span class="p-val" id="tpLeftDays">-</span></div>
   </div>
 </div>
- 
+
 <!-- ── 과제 관리 ── -->
 <div class="page" id="page-tasks">
   <div class="card">
@@ -289,13 +296,13 @@ input::placeholder { color: var(--border); }
     </div>
     <button class="add-btn" onclick="addTask()">과제 등록</button>
   </div>
- 
+
   <div class="card">
     <div class="card-title">📁 등록된 과제</div>
     <div id="taskList"></div>
   </div>
 </div>
- 
+
 <!-- ── 탭바 ── -->
 <nav class="tab-bar">
   <button class="tab-btn active" onclick="switchTab('home')" id="tab-home">
@@ -308,9 +315,9 @@ input::placeholder { color: var(--border); }
     <span class="tab-icon">📁</span>과제
   </button>
 </nav>
- 
+
 <div class="toast" id="toast"></div>
- 
+
 <script>
 // ══════════════════════════════════════════
 // 공휴일
@@ -323,7 +330,7 @@ const HOLIDAYS = new Set([
   '2026-10-03','2026-10-09','2026-12-25'
 ]);
 function isOff(ds){ const d=new Date(ds+'T00:00:00').getDay(); return d===0||d===6||HOLIDAYS.has(ds); }
- 
+
 // ══════════════════════════════════════════
 // 상태
 // ══════════════════════════════════════════
@@ -331,10 +338,10 @@ let settings = JSON.parse(localStorage.getItem('esop_settings')||'{}');
 let records  = JSON.parse(localStorage.getItem('esop_records') ||'[]');
 let taskList = JSON.parse(localStorage.getItem('esop_tasks2')  ||'[]');
 // taskList: [{name, start, end}]
- 
+
 let calYear, calMonth, selectedDate=null;
 const n0=new Date(); calYear=n0.getFullYear(); calMonth=n0.getMonth();
- 
+
 // ══════════════════════════════════════════
 // 유틸
 // ══════════════════════════════════════════
@@ -343,12 +350,12 @@ function todayKey(){ const n=new Date(); return `${n.getFullYear()}-${pad(n.getM
 function getEntry(ds){ return records.find(r=>r.date===ds); }
 function saveRecords(){ localStorage.setItem('esop_records',JSON.stringify(records)); }
 function saveTasks(){   localStorage.setItem('esop_tasks2', JSON.stringify(taskList)); }
- 
+
 // 날짜에 해당하는 과제 찾기
 function getTaskForDate(ds){
   return taskList.find(t => ds >= t.start && ds <= t.end) || null;
 }
- 
+
 function calcReal(i,o){
   if(!i||!o) return '';
   const [ih,im]=i.split(':').map(Number),[oh,om]=o.split(':').map(Number);
@@ -366,7 +373,7 @@ function minsOf(i,o){
   const [ih,im]=i.split(':').map(Number),[oh,om]=o.split(':').map(Number);
   return Math.max(0,(oh*60+om)-(ih*60+im)-60);
 }
- 
+
 // ══════════════════════════════════════════
 // 시계
 // ══════════════════════════════════════════
@@ -380,7 +387,7 @@ function tick(){
     `${n.getFullYear()}.${pad(n.getMonth()+1)}.${pad(n.getDate())} (${days[n.getDay()]})`;
 }
 setInterval(tick,1000); tick();
- 
+
 // ══════════════════════════════════════════
 // 탭
 // ══════════════════════════════════════════
@@ -392,7 +399,7 @@ function switchTab(tab){
   if(tab==='cal')   { renderCal(); renderCalStats(); }
   if(tab==='tasks') { renderTaskList(); }
 }
- 
+
 // ══════════════════════════════════════════
 // 출퇴근 기록
 // ══════════════════════════════════════════
@@ -401,7 +408,7 @@ function record(type){
   const task=getTaskForDate(key);
   let entry=getEntry(key);
   if(!entry){ entry={date:key,in:null,out:null,task:task?.name||''}; records.unshift(entry); }
- 
+
   if(type==='in'){
     if(entry.in){ showToast(`이미 출근 기록이 있어요 (${entry.in})`,'info'); return; }
     entry.in=time; entry.task=task?.name||'';
@@ -413,7 +420,7 @@ function record(type){
   }
   saveRecords(); updateHomeUI(); sendToSheet(entry);
 }
- 
+
 // ══════════════════════════════════════════
 // 홈 UI
 // ══════════════════════════════════════════
@@ -421,7 +428,7 @@ function updateHomeUI(){
   const key=todayKey();
   const e=getEntry(key);
   const task=getTaskForDate(key);
- 
+
   // 오늘 과제 카드
   const taskCard=document.getElementById('todayTaskCard');
   if(task){
@@ -429,12 +436,12 @@ function updateHomeUI(){
     document.getElementById('todayTaskBadge').textContent=task.name;
     document.getElementById('todayTaskPeriod').textContent=`${task.start} ~ ${task.end}`;
   } else { taskCard.style.display='none'; }
- 
+
   document.getElementById('todayIn').textContent   = e?.in  ||'--:--';
   document.getElementById('todayOut').textContent  = e?.out ||'--:--';
   document.getElementById('todayReal').textContent = e?(calcReal(e.in,e.out)||'-'):'-';
 }
- 
+
 // ══════════════════════════════════════════
 // 과제 관리
 // ══════════════════════════════════════════
@@ -446,7 +453,7 @@ function addTask(){
   if(!start) { showToast('시작일을 선택해주세요','error'); return; }
   if(!end)   { showToast('종료일을 선택해주세요','error'); return; }
   if(start>end){ showToast('종료일이 시작일보다 빠를 수 없어요','error'); return; }
- 
+
   taskList.push({name,start,end});
   taskList.sort((a,b)=>a.start>b.start?1:-1);
   saveTasks();
@@ -457,7 +464,7 @@ function addTask(){
   document.getElementById('newTaskEnd').value='';
   showToast(`✅ "${name}" 과제 등록됨`,'success');
 }
- 
+
 function deleteTask(i){
   const t=taskList[i];
   // confirm 대신 두 번 탭으로 삭제 확인
@@ -476,7 +483,7 @@ function deleteTask(i){
     setTimeout(()=>{ if(taskList[i]) t._confirmDelete=false; },3000);
   }
 }
- 
+
 function updateTaskField(i, field, val){
   const t=taskList[i];
   if(!val){ showToast('날짜를 선택해주세요','error'); return; }
@@ -493,7 +500,7 @@ function updateTaskField(i, field, val){
   const label=field==='end'?'종료일':'시작일';
   showToast(`✅ ${label} → ${val}`,'success');
 }
- 
+
 function updateTaskName(i){
   const t=taskList[i];
   const newName=document.getElementById('taskname_'+i)?.value.trim();
@@ -507,7 +514,7 @@ function updateTaskName(i){
   }
   showToast(`✅ 과제명 → "${newName}"`,'success');
 }
- 
+
 function renderTaskList(){
   const el=document.getElementById('taskList');
   if(taskList.length===0){
@@ -549,12 +556,12 @@ function renderTaskList(){
     </div>`;
   }).join('');
 }
- 
+
 // ══════════════════════════════════════════
 // 달력
 // ══════════════════════════════════════════
 function changeMonth(d){ calMonth+=d; if(calMonth>11){calMonth=0;calYear++;} if(calMonth<0){calMonth=11;calYear--;} renderCal(); renderCalStats(); }
- 
+
 function renderCal(){
   document.getElementById('calMonthTitle').textContent=`${calYear}년 ${calMonth+1}월`;
   const grid=document.getElementById('calGrid');
@@ -562,9 +569,9 @@ function renderCal(){
   const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
   const today=todayKey();
   let html='';
- 
+
   for(let i=0;i<firstDay;i++) html+=`<div class="cal-day empty"></div>`;
- 
+
   for(let d=1;d<=daysInMonth;d++){
     const ds=`${calYear}-${pad(calMonth+1)}-${pad(d)}`;
     const entry=getEntry(ds);
@@ -576,7 +583,7 @@ function renderCal(){
     if(entry?.in) cls+=' has-record';
     if(task) cls+=' in-task';
     if(selectedDate===ds) cls+=' selected';
- 
+
     // 부족/초과 시간 표시
     const isPast = ds < today;
     let diffLabel = '';
@@ -600,13 +607,13 @@ function renderCal(){
     </div>`;
   }
   grid.innerHTML=html;
- 
+
   if(selectedDate){
     const [sy,sm]=selectedDate.split('-').map(Number);
     if(sy!==calYear||sm!==calMonth+1) closeDetail();
   }
 }
- 
+
 function selectDate(ds){
   selectedDate=ds;
   renderCal();
@@ -616,7 +623,7 @@ function selectDate(ds){
   const [y,m,d]=ds.split('-');
   const days=['일','월','화','수','목','금','토'];
   const dow=new Date(ds+'T00:00:00').getDay();
- 
+
   document.getElementById('detailDate').textContent=
     `${y}년 ${m}월 ${d}일 (${days[dow]})${isOff(ds)?'  🔴':''}`;
   document.getElementById('detailTaskBadgeWrap').innerHTML=
@@ -624,13 +631,13 @@ function selectDate(ds){
   document.getElementById('detailIn').textContent  = entry.in  ||'--:--';
   document.getElementById('detailOut').textContent = entry.out ||'--:--';
   document.getElementById('detailReal').textContent= calcReal(entry.in,entry.out)||'-';
- 
+
   panel.classList.add('show');
   panel.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
- 
+
 function closeDetail(){ document.getElementById('detailPanel').classList.remove('show'); selectedDate=null; renderCal(); }
- 
+
 // 두 날짜 사이의 법정 근무일 수 계산
 function countWorkDays(start, end){
   let cnt=0, cur=start;
@@ -641,7 +648,7 @@ function countWorkDays(start, end){
   }
   return cnt;
 }
- 
+
 function renderCalStats(){
   const ms=`${calYear}-${pad(calMonth+1)}`;
   const monthly=records.filter(r=>r.date.startsWith(ms)&&r.in&&r.out);
@@ -657,57 +664,57 @@ function renderCalStats(){
     <div class="stat-item"><div class="stat-label">일평균</div><div class="stat-value">${Math.floor(avg/60)}h ${avg%60}m</div></div>
     <div class="stat-item"><div class="stat-label">8h 미달</div><div class="stat-value ${shortDays>0?'red':'green'}">${shortDays}일</div></div>
   `;
- 
+
   // 이 달에 겹치는 과제 찾아서 진행현황 렌더링
   const calStart=`${calYear}-${pad(calMonth+1)}-01`;
   const lastD=new Date(calYear,calMonth+1,0).getDate();
   const calEnd=`${calYear}-${pad(calMonth+1)}-${pad(lastD)}`;
   const today=todayKey();
- 
+
   // 이 달과 겹치는 과제 (기간이 이 달 안에 걸쳐있는 것)
   const overlapping=taskList.filter(t=>t.start<=calEnd && t.end>=calStart);
   const card=document.getElementById('taskProgressCard');
- 
+
   if(overlapping.length===0){ card.style.display='none'; return; }
   card.style.display='block';
- 
+
   // 여러 과제가 있을 수 있으니 이 달의 현재 과제 우선, 없으면 첫 번째
   const curTask=overlapping.find(t=>today>=t.start&&today<=t.end)||overlapping[0];
- 
+
   document.getElementById('taskProgressTitle').textContent=`📁 ${curTask.name} 진행현황`;
- 
+
   // 과제 전체 법정 근무일 & 목표시간
   const totalWorkDays = countWorkDays(curTask.start, curTask.end);
   const targetMins    = totalWorkDays * 480; // 8h
- 
+
   // 오늘까지 실근무시간 합산
   const cutoff = today < curTask.end ? today : curTask.end;
   const taskRecords = records.filter(r=>r.date>=curTask.start&&r.date<=cutoff&&r.in&&r.out);
   let actualMins=0;
   taskRecords.forEach(r=>{ actualMins+=minsOf(r.in,r.out); });
- 
+
   // 남은 근무일 (오늘 이후 ~ 종료일)
   const tomorrow=new Date(today+'T00:00:00'); tomorrow.setDate(tomorrow.getDate()+1);
   const tmStr=`${tomorrow.getFullYear()}-${pad(tomorrow.getMonth()+1)}-${pad(tomorrow.getDate())}`;
   const leftDays = today<=curTask.end ? countWorkDays(tmStr, curTask.end) : 0;
- 
+
   const remainMins = Math.max(0, targetMins - actualMins);
   const pct = Math.min(100, Math.round(actualMins/targetMins*100));
- 
+
   const fmtH = m => `${Math.floor(m/60)}h ${m%60}m`;
- 
+
   document.getElementById('tpPeriod').textContent   = `${curTask.start} ~ ${curTask.end}`;
   document.getElementById('tpWorkDays').textContent = `${totalWorkDays}일`;
   document.getElementById('tpTarget').textContent   = fmtH(targetMins);
   document.getElementById('tpActual').textContent   = fmtH(actualMins);
   document.getElementById('tpRemain').textContent   = remainMins>0 ? fmtH(remainMins) : '✅ 달성!';
   document.getElementById('tpLeftDays').textContent = `${leftDays}일`;
- 
+
   const bar=document.getElementById('taskProgressBar');
   bar.style.width=pct+'%';
   bar.className='progress-bar'+(remainMins>0?' warn':'');
 }
- 
+
 // ══════════════════════════════════════════
 // 구글 시트 전송
 // ══════════════════════════════════════════
@@ -727,13 +734,13 @@ async function sendToSheet(entry){
     showToast('📊 구글 시트 전송됨','success');
   } catch(e){ showToast('시트 전송 실패 — 로컬 저장됨','error'); }
 }
- 
+
 function saveSettings(){
   settings.scriptUrl=document.getElementById('scriptUrl').value.trim();
   localStorage.setItem('esop_settings',JSON.stringify(settings));
   showToast('✓ 설정 저장됨','success');
 }
- 
+
 // ══════════════════════════════════════════
 // 토스트
 // ══════════════════════════════════════════
@@ -744,7 +751,7 @@ function showToast(msg,type='info'){
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>{ el.className='toast'; },2800);
 }
- 
+
 // ══════════════════════════════════════════
 // 초기화
 // ══════════════════════════════════════════
