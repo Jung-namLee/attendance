@@ -171,6 +171,30 @@ input::placeholder { color: var(--border); }
 /* ── 설정 ── */
 .save-btn { width: 100%; margin-top: 8px; background: var(--border); border: none; border-radius: 10px; padding: 13px; color: var(--text); font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; }
 
+/* ── 아코디언 ── */
+.accordion { display: flex; flex-direction: column; gap: 8px; }
+.acc-item { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.acc-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 13px 14px; cursor: pointer; font-size: 13px; font-weight: 700;
+  color: var(--text);
+}
+.acc-header:active { background: rgba(255,255,255,0.03); }
+.acc-arrow { color: var(--muted); transition: transform 0.2s; font-size: 12px; }
+.acc-arrow.open { transform: rotate(90deg); }
+.acc-body {
+  display: none; padding: 0 14px 14px;
+  display: flex; flex-direction: column; gap: 7px;
+}
+.acc-body p { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.acc-body p b { color: var(--text); }
+.acc-body.show { display: flex; }
+
+/* ── 주의사항 ── */
+.notice-item { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--muted); line-height: 1.6; }
+.notice-icon { font-size: 16px; flex-shrink: 0; }
+.notice-item b { color: var(--text); }
+
 /* ── 토스트 ── */
 .toast {
   position: fixed; bottom: 80px; left: 50%;
@@ -314,7 +338,158 @@ input::placeholder { color: var(--border); }
   <button class="tab-btn" onclick="switchTab('tasks')" id="tab-tasks">
     <span class="tab-icon">📁</span>과제
   </button>
+  <button class="tab-btn" onclick="switchTab('help')" id="tab-help">
+    <span class="tab-icon">💬</span>도움말
+  </button>
 </nav>
+
+<!-- ── 도움말 ── -->
+<div class="page" id="page-help">
+
+  <!-- 앱 소개 -->
+  <div class="card">
+    <div class="card-title">⚡ 앱 소개</div>
+    <p style="font-size:13px;color:var(--muted);line-height:1.8;">
+      출퇴근 기록 앱은 매일 출근/퇴근 버튼 한 번으로 근무시간을 자동 기록하고,
+      구글 시트에 저장하는 앱이에요.<br><br>
+      과제별 근무시간 관리, 달력 조회, 8h 미달 알림 기능을 제공해요.
+    </p>
+  </div>
+
+  <!-- 사용방법 아코디언 -->
+  <div class="card">
+    <div class="card-title">📖 사용 방법</div>
+
+    <div class="accordion">
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this)">
+          <span>1. 기본 출퇴근 기록</span><span class="acc-arrow">▸</span>
+        </div>
+        <div class="acc-body">
+          <p>① 홈 화면에서 <b>☀️ 출근</b> 버튼 탭 → 출근 기록</p>
+          <p>② 퇴근할 때 <b>🌙 퇴근</b> 버튼 탭 → 퇴근 기록</p>
+          <p>③ 실근무시간은 점심 1시간이 자동으로 차감돼요</p>
+          <p>④ 하루 1회씩만 기록해주세요</p>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this)">
+          <span>2. 달력 화면</span><span class="acc-arrow">▸</span>
+        </div>
+        <div class="acc-body">
+          <p>① 📅 달력 탭에서 월별 출퇴근 기록 확인</p>
+          <p>② 날짜 탭하면 상세 기록 확인 가능</p>
+          <p>③ 🔴 빨간 날짜 = 주말/공휴일</p>
+          <p>④ 붉은 배경 날짜 = 8h 미달 근무일</p>
+          <p>⑤ 날짜 안 숫자 = 부족/초과 시간 표시</p>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this)">
+          <span>3. 과제 관리</span><span class="acc-arrow">▸</span>
+        </div>
+        <div class="acc-body">
+          <p>① 📁 과제 탭에서 과제명/시작일/종료일 등록</p>
+          <p>② 등록 후 해당 기간 달력에 과제 자동 표시</p>
+          <p>③ 종료일 변경 시 목표 근무시간 자동 재계산</p>
+          <p>④ 과제 진행현황에서 부족 시간 실시간 확인</p>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this)">
+          <span>4. 구글 시트 연동 방법</span><span class="acc-arrow">▸</span>
+        </div>
+        <div class="acc-body">
+          <p>① 구글 시트 새로 만들기 (빈 스프레드시트)</p>
+          <p>② 상단 <b>확장 프로그램 → Apps Script</b> 클릭</p>
+          <p>③ 기존 코드 전체 삭제</p>
+          <p>④ 공유받은 코드 붙여넣기 → 저장(Ctrl+S)</p>
+          <p>⑤ <b>배포 → 새 배포 → 웹앱</b> 선택</p>
+          <p>⑥ 액세스 권한: <b>모든 사용자</b> → 배포</p>
+          <p>⑦ 경고창 뜨면 <b>Advanced → Allow</b> 클릭</p>
+          <p>⑧ URL 복사 → 홈 화면 하단 🔗 구글 시트 연결에 붙여넣기 → 저장</p>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this)">
+          <span>5. 홈화면에 앱 추가 방법</span><span class="acc-arrow">▸</span>
+        </div>
+        <div class="acc-body">
+          <p>① 크롬 브라우저로 앱 링크 접속</p>
+          <p>② 오른쪽 위 <b>⋮ → 홈 화면에 추가</b> 탭</p>
+          <p>③ 추가 버튼 탭 → 완료!</p>
+          <p>※ 삼성 인터넷 말고 <b>크롬</b>으로 해주세요</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 주의사항 -->
+  <div class="card">
+    <div class="card-title">⚠️ 사용 시 주의사항</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="notice-item">
+        <span class="notice-icon">📱</span>
+        <span>출퇴근 버튼은 하루 1회씩만 눌러주세요</span>
+      </div>
+      <div class="notice-item">
+        <span class="notice-icon">🌐</span>
+        <span>홈화면 추가는 반드시 <b>크롬 브라우저</b>로 해주세요 (삼성 인터넷 X)</span>
+      </div>
+      <div class="notice-item">
+        <span class="notice-icon">🗑️</span>
+        <span>크롬 브라우저 데이터 삭제 시 앱 내 기록이 삭제될 수 있어요</span>
+      </div>
+      <div class="notice-item">
+        <span class="notice-icon">🔗</span>
+        <span>구글 시트 URL은 각자 본인 것을 입력해야 해요</span>
+      </div>
+      <div class="notice-item">
+        <span class="notice-icon">☁️</span>
+        <span>구글 시트 연동 시 인터넷 연결이 필요해요</span>
+      </div>
+      <div class="notice-item">
+        <span class="notice-icon">🔄</span>
+        <span>앱 업데이트는 자동으로 반영돼요 (재설치 불필요)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 건의사항 -->
+  <div class="card">
+    <div class="card-title">📬 건의사항 / 기타 의견</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.7;">
+      불편한 점, 추가되었으면 하는 기능, 오류 신고 등<br>
+      자유롭게 의견 보내주세요! 😊
+    </p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">제목</div>
+        <input type="text" id="feedbackTitle" placeholder="예: 기능 추가 요청 / 오류 신고" />
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">내용</div>
+        <textarea id="feedbackBody" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;outline:none;resize:none;min-height:100px;" placeholder="내용을 입력해주세요..."></textarea>
+      </div>
+      <button onclick="sendFeedback()" style="width:100%;background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);border-radius:10px;padding:13px;color:var(--in);font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">
+        📧 메일로 보내기
+      </button>
+    </div>
+    <div style="text-align:center;margin-top:12px;font-size:11px;color:var(--muted);">
+      jn1220.lee@gmail.com 으로 전송돼요
+    </div>
+  </div>
+
+  <!-- 앱 버전 -->
+  <div style="text-align:center;padding:8px 0;font-size:11px;color:var(--border);">
+    출퇴근 기록 앱 v2.0 · Made with ❤️
+  </div>
+
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -398,6 +573,7 @@ function switchTab(tab){
   document.getElementById('tab-'+tab).classList.add('active');
   if(tab==='cal')   { renderCal(); renderCalStats(); }
   if(tab==='tasks') { renderTaskList(); }
+  if(tab==='help')  { /* 정적 페이지 */ }
 }
 
 // ══════════════════════════════════════════
@@ -750,6 +926,35 @@ function showToast(msg,type='info'){
   el.textContent=msg; el.className=`toast ${type} show`;
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>{ el.className='toast'; },2800);
+}
+
+// ══════════════════════════════════════════
+// 아코디언
+// ══════════════════════════════════════════
+function toggleAcc(header){
+  const body = header.nextElementSibling;
+  const arrow = header.querySelector('.acc-arrow');
+  const isOpen = body.classList.contains('show');
+  // 모두 닫기
+  document.querySelectorAll('.acc-body').forEach(b=>b.classList.remove('show'));
+  document.querySelectorAll('.acc-arrow').forEach(a=>a.classList.remove('open'));
+  if(!isOpen){
+    body.classList.add('show');
+    arrow.classList.add('open');
+  }
+}
+
+// ══════════════════════════════════════════
+// 건의사항 메일 전송
+// ══════════════════════════════════════════
+function sendFeedback(){
+  const title = document.getElementById('feedbackTitle').value.trim();
+  const body  = document.getElementById('feedbackBody').value.trim();
+  if(!title){ showToast('제목을 입력해주세요','error'); return; }
+  if(!body) { showToast('내용을 입력해주세요','error'); return; }
+  const mailto = `mailto:jn1220.lee@gmail.com?subject=${encodeURIComponent('[출퇴근앱] '+title)}&body=${encodeURIComponent(body)}`;
+  window.location.href = mailto;
+  showToast('메일 앱이 열려요 😊','success');
 }
 
 // ══════════════════════════════════════════
