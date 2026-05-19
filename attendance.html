@@ -281,6 +281,28 @@ input::placeholder { color: var(--border); }
       <div class="detail-row"><span class="detail-label">출근</span><span class="detail-val in" id="detailIn">--:--</span></div>
       <div class="detail-row"><span class="detail-label">퇴근</span><span class="detail-val out" id="detailOut">--:--</span></div>
       <div class="detail-row"><span class="detail-label">실근무</span><span class="detail-val" id="detailReal">-</span></div>
+      <!-- ✏️ 수정 영역 -->
+      <div id="editArea" style="margin-top:12px;display:none;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;letter-spacing:0.1em;">✏️ 시간 수정</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">출근 시간</div>
+            <input type="time" id="editIn" style="width:100%;background:#f8f9fd;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:15px;outline:none;" />
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">퇴근 시간</div>
+            <input type="time" id="editOut" style="width:100%;background:#f8f9fd;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:15px;outline:none;" />
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button onclick="saveEdit()" style="background:rgba(0,184,122,0.12);border:1.5px solid rgba(0,184,122,0.4);color:var(--in);border-radius:12px;padding:12px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">✅ 저장</button>
+          <button onclick="deleteRecord()" style="background:rgba(224,62,62,0.08);border:1.5px solid rgba(224,62,62,0.3);color:var(--out);border-radius:12px;padding:12px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">🗑 삭제</button>
+        </div>
+      </div>
+      <!-- 수정 버튼 -->
+      <button id="editToggleBtn" onclick="toggleEditArea()" style="margin-top:12px;width:100%;background:#f0eeff;border:1px solid #c8c0f5;color:var(--accent);border-radius:12px;padding:11px;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">
+        ✏️ 기록 수정 / 추가
+      </button>
     </div>
   </div>
 
@@ -380,11 +402,13 @@ input::placeholder { color: var(--border); }
         </div>
         <div class="acc-body">
           <p>① 📅 달력 탭에서 월별 출퇴근 기록 확인</p>
-          <p>② 날짜 탭하면 상세 기록 확인 가능</p>
-          <p>③ 🔴 빨간 날짜 = 주말/공휴일</p>
-          <p>④ 붉은 배경 날짜 = 8h 미달 근무일</p>
-          <p>⑤ 날짜 안 숫자 = 부족/초과 시간 표시</p>
-        </div>
+          <p>② 날짜 탭하면 상세 기록 확인</p>
+          <p>③ <b>✏️ 기록 수정 / 추가</b> 버튼으로 깜빡한 날 시간 직접 입력 가능</p>
+          <p>④ 수정 후 <b>✅ 저장</b> 탭하면 구글 시트도 자동 반영</p>
+          <p>⑤ 🗑 삭제는 두 번 탭으로 확인 후 삭제</p>
+          <p>⑥ 🔴 빨간 날짜 = 주말/공휴일</p>
+          <p>⑦ 붉은 배경 날짜 = 8h 미달 근무일</p>
+          <p>⑧ 날짜 안 숫자 = 부족/초과 시간 표시</p>
       </div>
 
       <div class="acc-item">
@@ -516,7 +540,7 @@ input::placeholder { color: var(--border); }
 
   <!-- 앱 버전 -->
   <div style="text-align:center;padding:8px 0;font-size:11px;color:var(--border);">
-    출퇴근 기록 앱 v2.0 · Made with ❤️
+    출퇴근 기록 앱 v2.1 · Made with ❤️
   </div>
 
 </div>
@@ -838,8 +862,91 @@ function selectDate(ds){
   document.getElementById('detailOut').textContent = entry.out ||'--:--';
   document.getElementById('detailReal').textContent= calcReal(entry.in,entry.out)||'-';
 
+  // 수정 영역 초기화 (닫은 상태로)
+  document.getElementById('editArea').style.display='none';
+  document.getElementById('editToggleBtn').textContent='✏️ 기록 수정 / 추가';
+  // 기존 시간값 미리 채워두기
+  document.getElementById('editIn').value  = entry.in  ||'';
+  document.getElementById('editOut').value = entry.out ||'';
+
   panel.classList.add('show');
   panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function toggleEditArea(){
+  const area=document.getElementById('editArea');
+  const btn=document.getElementById('editToggleBtn');
+  const isOpen=area.style.display!=='none';
+  area.style.display=isOpen?'none':'block';
+  btn.textContent=isOpen?'✏️ 기록 수정 / 추가':'🔼 닫기';
+}
+
+function saveEdit(){
+  if(!selectedDate){ showToast('날짜를 먼저 선택해주세요','error'); return; }
+  const inVal  = document.getElementById('editIn').value;
+  const outVal = document.getElementById('editOut').value;
+
+  if(!inVal && !outVal){
+    showToast('출근 또는 퇴근 시간을 입력해주세요','error'); return;
+  }
+  if(inVal && outVal && inVal >= outVal){
+    showToast('퇴근 시간이 출근 시간보다 늦어야 해요','error'); return;
+  }
+
+  const task=getTaskForDate(selectedDate);
+  let entry=getEntry(selectedDate);
+  if(!entry){
+    entry={date:selectedDate, in:null, out:null, task:task?.name||''};
+    records.unshift(entry);
+    records.sort((a,b)=>b.date.localeCompare(a.date));
+  }
+  if(inVal)  entry.in  = inVal;
+  if(outVal) entry.out = outVal;
+  entry.task = task?.name||entry.task||'';
+
+  saveRecords();
+  sendToSheet(entry);
+
+  // 화면 갱신
+  document.getElementById('detailIn').textContent  = entry.in  ||'--:--';
+  document.getElementById('detailOut').textContent = entry.out ||'--:--';
+  document.getElementById('detailReal').textContent= calcReal(entry.in,entry.out)||'-';
+  updateHomeUI();
+  renderCal();
+
+  // 수정 영역 닫기
+  document.getElementById('editArea').style.display='none';
+  document.getElementById('editToggleBtn').textContent='✏️ 기록 수정 / 추가';
+
+  showToast(`✅ ${selectedDate} 기록이 저장됐어요`,'success');
+}
+
+function deleteRecord(){
+  if(!selectedDate){ showToast('날짜를 먼저 선택해주세요','error'); return; }
+  const idx=records.findIndex(r=>r.date===selectedDate);
+  if(idx===-1){ showToast('삭제할 기록이 없어요','info'); return; }
+
+  const btn=document.getElementById('editToggleBtn');
+  // 두 번 탭으로 삭제 확인
+  if(deleteRecord._confirm===selectedDate){
+    records.splice(idx,1);
+    saveRecords();
+    document.getElementById('detailIn').textContent  ='--:--';
+    document.getElementById('detailOut').textContent ='--:--';
+    document.getElementById('detailReal').textContent='-';
+    document.getElementById('editIn').value='';
+    document.getElementById('editOut').value='';
+    document.getElementById('editArea').style.display='none';
+    document.getElementById('editToggleBtn').textContent='✏️ 기록 수정 / 추가';
+    updateHomeUI();
+    renderCal();
+    deleteRecord._confirm=null;
+    showToast(`🗑 ${selectedDate} 기록이 삭제됐어요`,'info');
+  } else {
+    deleteRecord._confirm=selectedDate;
+    showToast('한 번 더 탭하면 삭제돼요','error');
+    setTimeout(()=>{ deleteRecord._confirm=null; },3000);
+  }
 }
 
 function closeDetail(){ document.getElementById('detailPanel').classList.remove('show'); selectedDate=null; renderCal(); }
