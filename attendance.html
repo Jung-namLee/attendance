@@ -281,28 +281,31 @@ input::placeholder { color: var(--border); }
       <div class="detail-row"><span class="detail-label">출근</span><span class="detail-val in" id="detailIn">--:--</span></div>
       <div class="detail-row"><span class="detail-label">퇴근</span><span class="detail-val out" id="detailOut">--:--</span></div>
       <div class="detail-row"><span class="detail-label">실근무</span><span class="detail-val" id="detailReal">-</span></div>
-      <!-- ✏️ 수정 영역 -->
-      <div id="editArea" style="margin-top:12px;display:none;">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;letter-spacing:0.1em;">✏️ 시간 수정</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
-          <div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">출근 시간</div>
-            <input type="time" id="editIn" style="width:100%;background:#f8f9fd;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:15px;outline:none;" />
-          </div>
-          <div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">퇴근 시간</div>
-            <input type="time" id="editOut" style="width:100%;background:#f8f9fd;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:15px;outline:none;" />
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <button onclick="saveEdit()" style="background:rgba(0,184,122,0.12);border:1.5px solid rgba(0,184,122,0.4);color:var(--in);border-radius:12px;padding:12px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">✅ 저장</button>
-          <button onclick="deleteRecord()" style="background:rgba(224,62,62,0.08);border:1.5px solid rgba(224,62,62,0.3);color:var(--out);border-radius:12px;padding:12px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">🗑 삭제</button>
-        </div>
-      </div>
-      <!-- 수정 버튼 -->
-      <button id="editToggleBtn" onclick="toggleEditArea()" style="margin-top:12px;width:100%;background:#f0eeff;border:1px solid #c8c0f5;color:var(--accent);border-radius:12px;padding:11px;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">
+    </div>
+
+    <!-- ✏️ 수정 버튼 (패널 밖, 항상 표시) -->
+    <div id="editWrap" style="display:none;margin-top:10px;">
+      <button id="editToggleBtn" onclick="toggleEditArea()" style="width:100%;background:#f0eeff;border:1.5px solid #c8c0f5;color:var(--accent);border-radius:14px;padding:13px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">
         ✏️ 기록 수정 / 추가
       </button>
+      <!-- 수정 영역 -->
+      <div id="editArea" style="margin-top:10px;display:none;background:#f8f9fd;border:1px solid var(--border);border-radius:14px;padding:16px;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;letter-spacing:0.1em;">✏️ 시간 직접 입력</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+          <div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:5px;">출근 시간</div>
+            <input type="time" id="editIn" style="width:100%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 12px;color:var(--text);font-size:16px;outline:none;" />
+          </div>
+          <div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:5px;">퇴근 시간</div>
+            <input type="time" id="editOut" style="width:100%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 12px;color:var(--text);font-size:16px;outline:none;" />
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <button onclick="saveEdit()" style="background:#e6fff6;border:1.5px solid #b3f0d9;color:var(--in);border-radius:12px;padding:14px;font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:700;cursor:pointer;">✅ 저장</button>
+          <button onclick="deleteRecord()" style="background:#fff0f0;border:1.5px solid #f5c0c0;color:var(--out);border-radius:12px;padding:14px;font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:700;cursor:pointer;">🗑 삭제</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -868,6 +871,8 @@ function selectDate(ds){
   // 기존 시간값 미리 채워두기
   document.getElementById('editIn').value  = entry.in  ||'';
   document.getElementById('editOut').value = entry.out ||'';
+  // 수정 버튼 wrap 표시
+  document.getElementById('editWrap').style.display='block';
 
   panel.classList.add('show');
   panel.scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -949,7 +954,14 @@ function deleteRecord(){
   }
 }
 
-function closeDetail(){ document.getElementById('detailPanel').classList.remove('show'); selectedDate=null; renderCal(); }
+function closeDetail(){
+  document.getElementById('detailPanel').classList.remove('show');
+  document.getElementById('editWrap').style.display='none';
+  document.getElementById('editArea').style.display='none';
+  document.getElementById('editToggleBtn').textContent='✏️ 기록 수정 / 추가';
+  selectedDate=null;
+  renderCal();
+}
 
 // 두 날짜 사이의 법정 근무일 수 계산
 function countWorkDays(start, end){
