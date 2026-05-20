@@ -243,13 +243,32 @@ input::placeholder { color: var(--border); }
     </button>
   </div>
 
+  <!-- 외출/복귀 버튼 -->
+  <div class="btn-row">
+    <button class="btn" id="outingBtn" onclick="recordOuting()" style="background:#fff8e6;border:1.5px solid #f5d88a;color:#b07d00;">
+      <span class="btn-icon">🚶</span><span class="btn-label">외출</span><span class="btn-sub">OUT</span>
+    </button>
+    <button class="btn" id="backBtn" onclick="recordBack()" style="background:#e6f0ff;border:1.5px solid #a8c4f5;color:#1a5bbf;">
+      <span class="btn-icon">🏃</span><span class="btn-label">복귀</span><span class="btn-sub">BACK</span>
+    </button>
+  </div>
+
   <div class="card">
     <div class="card-title">📋 오늘 기록</div>
     <div class="today-row"><span class="t-label">출근</span><span class="t-val in" id="todayIn">--:--</span></div>
     <div class="today-row"><span class="t-label">퇴근</span><span class="t-val out" id="todayOut">--:--</span></div>
     <div class="today-row">
-      <span class="t-label">실근무 <span style="font-size:10px;opacity:0.5">(점심제외)</span></span>
+      <span class="t-label">외출 <span style="font-size:10px;opacity:0.5">(합계)</span></span>
+      <span class="t-val" id="todayOuting" style="color:#b07d00;">-</span>
+    </div>
+    <div class="today-row">
+      <span class="t-label">실근무 <span style="font-size:10px;opacity:0.5">(점심+외출제외)</span></span>
       <span class="t-val" id="todayReal">-</span>
+    </div>
+    <!-- 외출 상세 목록 -->
+    <div id="todayOutingList" style="margin-top:8px;display:none;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:0.1em;">🚶 외출 기록</div>
+      <div id="todayOutingItems"></div>
     </div>
   </div>
 
@@ -280,7 +299,10 @@ input::placeholder { color: var(--border); }
       <div id="detailTaskBadgeWrap"></div>
       <div class="detail-row"><span class="detail-label">출근</span><span class="detail-val in" id="detailIn">--:--</span></div>
       <div class="detail-row"><span class="detail-label">퇴근</span><span class="detail-val out" id="detailOut">--:--</span></div>
+      <div class="detail-row"><span class="detail-label">외출</span><span class="detail-val" id="detailOuting" style="color:#b07d00;">-</span></div>
       <div class="detail-row"><span class="detail-label">실근무</span><span class="detail-val" id="detailReal">-</span></div>
+      <!-- 외출 상세 -->
+      <div id="detailOutingList" style="margin-top:6px;"></div>
     </div>
 
     <!-- ✏️ 수정 버튼 (패널 밖, 항상 표시) -->
@@ -290,7 +312,8 @@ input::placeholder { color: var(--border); }
       </button>
       <!-- 수정 영역 -->
       <div id="editArea" style="margin-top:10px;display:none;background:#f8f9fd;border:1px solid var(--border);border-radius:14px;padding:16px;">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;letter-spacing:0.1em;">✏️ 시간 직접 입력</div>
+        <!-- 출퇴근 수정 -->
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;letter-spacing:0.1em;">✏️ 출퇴근 시간 수정</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
           <div>
             <div style="font-size:12px;color:var(--muted);margin-bottom:5px;">출근 시간</div>
@@ -301,9 +324,28 @@ input::placeholder { color: var(--border); }
             <input type="time" id="editOut" style="width:100%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 12px;color:var(--text);font-size:16px;outline:none;" />
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
           <button onclick="saveEdit()" style="background:#e6fff6;border:1.5px solid #b3f0d9;color:var(--in);border-radius:12px;padding:14px;font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:700;cursor:pointer;">✅ 저장</button>
           <button onclick="deleteRecord()" style="background:#fff0f0;border:1.5px solid #f5c0c0;color:var(--out);border-radius:12px;padding:14px;font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:700;cursor:pointer;">🗑 삭제</button>
+        </div>
+
+        <!-- 외출 추가 -->
+        <div style="border-top:1px solid var(--border);padding-top:14px;">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:10px;letter-spacing:0.1em;">🚶 외출 시간 추가</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;">
+            <div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:5px;">외출 시간</div>
+              <input type="time" id="editOutingOut" style="width:100%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 12px;color:var(--text);font-size:16px;outline:none;" />
+            </div>
+            <div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:5px;">복귀 시간</div>
+              <input type="time" id="editOutingBack" style="width:100%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 12px;color:var(--text);font-size:16px;outline:none;" />
+            </div>
+          </div>
+          <input type="text" id="editOutingMemo" placeholder="사유 메모 (선택, 예: 하원)" style="width:100%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 12px;color:var(--text);font-size:14px;outline:none;margin-bottom:10px;" />
+          <button onclick="addOutingEdit()" style="width:100%;background:#fff8e6;border:1.5px solid #f5d88a;color:#b07d00;border-radius:12px;padding:12px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">🚶 외출 기록 추가</button>
+          <!-- 기존 외출 목록 -->
+          <div id="editOutingList" style="margin-top:10px;"></div>
         </div>
       </div>
     </div>
@@ -543,7 +585,7 @@ input::placeholder { color: var(--border); }
 
   <!-- 앱 버전 -->
   <div style="text-align:center;padding:8px 0;font-size:11px;color:var(--border);">
-    출퇴근 기록 앱 v2.1 · Made with ❤️
+    출퇴근 기록 앱 v2.2 · Made with ❤️
   </div>
 
 </div>
@@ -588,22 +630,32 @@ function getTaskForDate(ds){
   return taskList.find(t => ds >= t.start && ds <= t.end) || null;
 }
 
-function calcReal(i,o){
+function toMins(t){ if(!t) return 0; const [h,m]=t.split(':').map(Number); return h*60+m; }
+function fmtMins(m){ return `${Math.floor(m/60)}h ${m%60}m`; }
+
+// 외출 총 분 계산
+function outingMins(outing){
+  if(!outing||!outing.length) return 0;
+  return outing.reduce((sum,o)=>{
+    if(!o.out||!o.back) return sum;
+    return sum + Math.max(0, toMins(o.back)-toMins(o.out));
+  },0);
+}
+
+function calcReal(i,o,outing){
   if(!i||!o) return '';
-  const [ih,im]=i.split(':').map(Number),[oh,om]=o.split(':').map(Number);
-  let m=(oh*60+om)-(ih*60+im)-60; if(m<0)m=0;
-  return `${Math.floor(m/60)}h ${m%60}m`;
+  let m = toMins(o)-toMins(i)-60-outingMins(outing);
+  if(m<0) m=0;
+  return fmtMins(m);
 }
 function calcRaw(i,o){
   if(!i||!o) return '';
-  const [ih,im]=i.split(':').map(Number),[oh,om]=o.split(':').map(Number);
-  let m=(oh*60+om)-(ih*60+im); if(m<0)m+=1440;
-  return `${Math.floor(m/60)}h ${m%60}m`;
+  let m=(toMins(o)-toMins(i)); if(m<0) m+=1440;
+  return fmtMins(m);
 }
-function minsOf(i,o){
+function minsOf(i,o,outing){
   if(!i||!o) return 0;
-  const [ih,im]=i.split(':').map(Number),[oh,om]=o.split(':').map(Number);
-  return Math.max(0,(oh*60+om)-(ih*60+im)-60);
+  return Math.max(0, toMins(o)-toMins(i)-60-outingMins(outing));
 }
 
 // ══════════════════════════════════════════
@@ -655,6 +707,39 @@ function record(type){
 }
 
 // ══════════════════════════════════════════
+// 외출 / 복귀 기록
+// ══════════════════════════════════════════
+function recordOuting(){
+  const n=new Date(), time=`${pad(n.getHours())}:${pad(n.getMinutes())}`, key=todayKey();
+  let entry=getEntry(key);
+  if(!entry||!entry.in){ showToast('출근 기록 후 외출 가능해요!','error'); return; }
+  if(!entry.outing) entry.outing=[];
+
+  // 복귀 안 한 외출이 있으면 새 외출 불가
+  const ongoing=entry.outing.find(o=>!o.back);
+  if(ongoing){ showToast(`이미 외출 중이에요 (${ongoing.out})  복귀를 먼저 눌러주세요`,'error'); return; }
+
+  entry.outing.push({out:time, back:null, memo:''});
+  saveRecords(); updateHomeUI(); sendToSheet(entry);
+  showToast(`🚶 외출: ${time}`,'success');
+}
+
+function recordBack(){
+  const n=new Date(), time=`${pad(n.getHours())}:${pad(n.getMinutes())}`, key=todayKey();
+  let entry=getEntry(key);
+  if(!entry||!entry.outing) { showToast('외출 기록이 없어요','error'); return; }
+
+  const ongoing=entry.outing.find(o=>!o.back);
+  if(!ongoing){ showToast('외출 기록이 없어요','error'); return; }
+
+  if(time<=ongoing.out){ showToast('복귀 시간이 외출 시간보다 늦어야 해요','error'); return; }
+  ongoing.back=time;
+  saveRecords(); updateHomeUI(); sendToSheet(entry);
+  const dur=fmtMins(toMins(time)-toMins(ongoing.out));
+  showToast(`🏃 복귀: ${time}  (외출 ${dur})`,'success');
+}
+
+// ══════════════════════════════════════════
 // 홈 UI
 // ══════════════════════════════════════════
 function updateHomeUI(){
@@ -672,7 +757,27 @@ function updateHomeUI(){
 
   document.getElementById('todayIn').textContent   = e?.in  ||'--:--';
   document.getElementById('todayOut').textContent  = e?.out ||'--:--';
-  document.getElementById('todayReal').textContent = e?(calcReal(e.in,e.out)||'-'):'-';
+
+  // 외출 합계
+  const outing = e?.outing||[];
+  const om = outingMins(outing);
+  document.getElementById('todayOuting').textContent = om>0 ? fmtMins(om) : '-';
+  document.getElementById('todayReal').textContent   = e ? (calcReal(e.in,e.out,e.outing)||'-') : '-';
+
+  // 외출 상세 목록
+  const listWrap=document.getElementById('todayOutingList');
+  const listEl=document.getElementById('todayOutingItems');
+  const validOuting=outing.filter(o=>o.out);
+  if(validOuting.length>0){
+    listWrap.style.display='block';
+    listEl.innerHTML=validOuting.map((o,i)=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px;">
+        <span style="color:#b07d00;">🚶 ${o.out} → ${o.back||'외출중'}</span>
+        <span style="color:var(--muted);">${o.back?fmtMins(toMins(o.back)-toMins(o.out)):'진행중'}</span>
+      </div>`).join('');
+  } else {
+    listWrap.style.display='none';
+  }
 }
 
 // ══════════════════════════════════════════
@@ -821,7 +926,7 @@ function renderCal(){
     const isPast = ds < today;
     let diffLabel = '';
     if(!isOff(ds) && entry?.in && entry?.out){
-      const real = minsOf(entry.in, entry.out);
+      const real = minsOf(entry.in, entry.out, entry.outing);
       const diff = real - 480; // 8h = 480분
       if(diff < 0){
         cls += ' short';
@@ -863,7 +968,12 @@ function selectDate(ds){
     task?`<div class="task-badge" style="margin-bottom:10px;">${task.name}</div>`:'';
   document.getElementById('detailIn').textContent  = entry.in  ||'--:--';
   document.getElementById('detailOut').textContent = entry.out ||'--:--';
-  document.getElementById('detailReal').textContent= calcReal(entry.in,entry.out)||'-';
+  const om=outingMins(entry.outing||[]);
+  document.getElementById('detailOuting').textContent = om>0 ? fmtMins(om) : '-';
+  document.getElementById('detailReal').textContent= calcReal(entry.in,entry.out,entry.outing)||'-';
+
+  // 외출 상세 목록
+  renderDetailOutingList(entry);
 
   // 수정 영역 초기화 (닫은 상태로)
   document.getElementById('editArea').style.display='none';
@@ -871,11 +981,90 @@ function selectDate(ds){
   // 기존 시간값 미리 채워두기
   document.getElementById('editIn').value  = entry.in  ||'';
   document.getElementById('editOut').value = entry.out ||'';
+  document.getElementById('editOutingOut').value='';
+  document.getElementById('editOutingBack').value='';
+  document.getElementById('editOutingMemo').value='';
+  renderEditOutingList(entry);
   // 수정 버튼 wrap 표시
   document.getElementById('editWrap').style.display='block';
 
   panel.classList.add('show');
   panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function addOutingEdit(){
+  if(!selectedDate){ showToast('날짜를 먼저 선택해주세요','error'); return; }
+  const outT = document.getElementById('editOutingOut').value;
+  const backT = document.getElementById('editOutingBack').value;
+  const memo  = document.getElementById('editOutingMemo').value.trim();
+
+  if(!outT){ showToast('외출 시간을 입력해주세요','error'); return; }
+  if(backT && backT<=outT){ showToast('복귀 시간이 외출 시간보다 늦어야 해요','error'); return; }
+
+  let entry=getEntry(selectedDate);
+  if(!entry){
+    entry={date:selectedDate,in:null,out:null,task:'',outing:[]};
+    records.unshift(entry);
+  }
+  if(!entry.outing) entry.outing=[];
+  entry.outing.push({out:outT, back:backT||null, memo});
+  entry.outing.sort((a,b)=>a.out>b.out?1:-1);
+
+  saveRecords();
+  sendToSheet(entry);
+
+  // 화면 갱신
+  const om=outingMins(entry.outing);
+  document.getElementById('detailOuting').textContent = om>0?fmtMins(om):'-';
+  document.getElementById('detailReal').textContent   = calcReal(entry.in,entry.out,entry.outing)||'-';
+  renderDetailOutingList(entry);
+  renderEditOutingList(entry);
+  updateHomeUI();
+
+  document.getElementById('editOutingOut').value='';
+  document.getElementById('editOutingBack').value='';
+  document.getElementById('editOutingMemo').value='';
+  showToast(`🚶 외출 기록 추가됨 (${outT}${backT?' → '+backT:''})`,'success');
+}
+
+function deleteOuting(idx){
+  if(!selectedDate) return;
+  const entry=getEntry(selectedDate);
+  if(!entry||!entry.outing||!entry.outing[idx]) return;
+  entry.outing.splice(idx,1);
+  saveRecords();
+  sendToSheet(entry);
+  const om=outingMins(entry.outing);
+  document.getElementById('detailOuting').textContent = om>0?fmtMins(om):'-';
+  document.getElementById('detailReal').textContent   = calcReal(entry.in,entry.out,entry.outing)||'-';
+  renderDetailOutingList(entry);
+  renderEditOutingList(entry);
+  updateHomeUI();
+  showToast('🗑 외출 기록 삭제됨','info');
+}
+
+function renderDetailOutingList(entry){
+  const el=document.getElementById('detailOutingList');
+  const outing=entry.outing||[];
+  if(!outing.length){ el.innerHTML=''; return; }
+  el.innerHTML=`<div style="font-size:11px;color:var(--muted);margin:8px 0 4px;letter-spacing:0.1em;">🚶 외출 상세</div>`
+    +outing.map((o,i)=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;">
+      <span style="color:#b07d00;">${o.out} → ${o.back||'외출중'}${o.memo?' ('+o.memo+')':''}</span>
+      <span style="color:var(--muted);">${o.back?fmtMins(toMins(o.back)-toMins(o.out)):'진행중'}</span>
+    </div>`).join('');
+}
+
+function renderEditOutingList(entry){
+  const el=document.getElementById('editOutingList');
+  const outing=entry.outing||[];
+  if(!outing.length){ el.innerHTML=''; return; }
+  el.innerHTML=`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">등록된 외출 기록</div>`
+    +outing.map((o,i)=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;">
+      <span style="color:#b07d00;">🚶 ${o.out} → ${o.back||'외출중'}${o.memo?' ('+o.memo+')':''}</span>
+      <button onclick="deleteOuting(${i})" style="background:#fff0f0;border:1px solid #f5c0c0;color:var(--out);border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;">삭제</button>
+    </div>`).join('');
 }
 
 function toggleEditArea(){
@@ -915,7 +1104,9 @@ function saveEdit(){
   // 화면 갱신
   document.getElementById('detailIn').textContent  = entry.in  ||'--:--';
   document.getElementById('detailOut').textContent = entry.out ||'--:--';
-  document.getElementById('detailReal').textContent= calcReal(entry.in,entry.out)||'-';
+  const om2=outingMins(entry.outing||[]);
+  document.getElementById('detailOuting').textContent = om2>0?fmtMins(om2):'-';
+  document.getElementById('detailReal').textContent= calcReal(entry.in,entry.out,entry.outing)||'-';
   updateHomeUI();
   renderCal();
 
@@ -979,7 +1170,7 @@ function renderCalStats(){
   const monthly=records.filter(r=>r.date.startsWith(ms)&&r.in&&r.out);
   const workedDays=monthly.length;
   let totalMins=0,shortDays=0;
-  monthly.forEach(r=>{ const m=minsOf(r.in,r.out); totalMins+=m; if(m<480)shortDays++; });
+  monthly.forEach(r=>{ const m=minsOf(r.in,r.out,r.outing); totalMins+=m; if(m<480)shortDays++; });
   const th=Math.floor(totalMins/60),tm=totalMins%60;
   const avg=workedDays?Math.floor(totalMins/workedDays):0;
   document.getElementById('calStatTitle').textContent=`📊 ${calMonth+1}월 요약`;
@@ -1016,7 +1207,7 @@ function renderCalStats(){
   const cutoff = today < curTask.end ? today : curTask.end;
   const taskRecords = records.filter(r=>r.date>=curTask.start&&r.date<=cutoff&&r.in&&r.out);
   let actualMins=0;
-  taskRecords.forEach(r=>{ actualMins+=minsOf(r.in,r.out); });
+  taskRecords.forEach(r=>{ actualMins+=minsOf(r.in,r.out,r.outing); });
 
   // 남은 근무일 (오늘 이후 ~ 종료일)
   const tomorrow=new Date(today+'T00:00:00'); tomorrow.setDate(tomorrow.getDate()+1);
@@ -1045,6 +1236,7 @@ function renderCalStats(){
 // ══════════════════════════════════════════
 async function sendToSheet(entry){
   const url=settings.scriptUrl; if(!url) return;
+  const om=outingMins(entry.outing||[]);
   try {
     await fetch(url,{
       method:'POST', mode:'no-cors',
@@ -1052,8 +1244,10 @@ async function sendToSheet(entry){
       body:JSON.stringify({
         date:entry.date, in:entry.in||'', out:entry.out||'',
         total:calcRaw(entry.in,entry.out),
-        real:calcReal(entry.in,entry.out),
-        task:entry.task||''
+        real:calcReal(entry.in,entry.out,entry.outing),
+        task:entry.task||'',
+        outing: om>0 ? fmtMins(om) : '',
+        outingDetail: (entry.outing||[]).map(o=>`${o.out}→${o.back||'?'}${o.memo?'('+o.memo+')':''}`).join(', ')
       })
     });
     showToast('📊 구글 시트 전송됨','success');
