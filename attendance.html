@@ -940,7 +940,11 @@ function renderCal(){
     const task=getTaskForDate(ds);
     const dow=(firstDay+d-1)%7;
     let cls='cal-day';
-    if(isOff(ds)) cls+=dow===0?' sunday':' saturday';
+    if(isOff(ds)){
+      if(dow===0) cls+=' sunday';
+      else if(dow===6) cls+=' saturday';
+      else cls+=' holiday'; // 평일 공휴일 (선거일, 제헌절 등) → 빨간색
+    }
     if(ds===today) cls+=' today';
     if(entry?.in) cls+=' has-record';
     if(task) cls+=' in-task';
