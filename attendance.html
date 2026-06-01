@@ -98,8 +98,9 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', s
 .cal-day {
   aspect-ratio: 1; border-radius: 8px;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  cursor: pointer; font-size: 12px; font-weight: 500; gap: 2px;
+  cursor: pointer; font-size: 12px; font-weight: 500; gap: 0;
   transition: background 0.15s; position: relative;
+  overflow: hidden; min-width: 0;
 }
 .cal-day:active { transform: scale(0.9); }
 .cal-day.empty { cursor: default; }
@@ -969,8 +970,8 @@ function renderCal(){
     const hname = getHolidayName(ds);
     html+=`<div class="${cls}" onclick="selectDate('${ds}')">
       <span style="${numColor}">${d}</span>
-      ${hname ? `<span style="position:absolute;bottom:2px;left:0;right:0;font-size:7px;color:#e03e3e;line-height:1;text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 1px">${hname}</span>` : ''}
-      ${diffLabel ? `<span style="font-size:9px;opacity:0.85;font-family:'DM Mono',monospace;color:${diffLabel.startsWith('-')?'var(--out)':diffLabel==='8h'?'var(--muted)':'var(--in)'}">${diffLabel}</span>` : dot}
+      ${hname ? `<span style="position:absolute;bottom:1px;left:0;right:0;font-size:6.5px;color:#e03e3e;line-height:1;text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 2px;pointer-events:none">${hname}</span>` : ''}
+      ${diffLabel ? `<span style="font-size:8px;opacity:0.85;font-family:'DM Mono',monospace;color:${diffLabel.startsWith('-')?'var(--out)':diffLabel==='8h'?'var(--muted)':'var(--in)'};line-height:1;display:block">${diffLabel}</span>` : dot}
     </div>`;
   }
   grid.innerHTML=html;
