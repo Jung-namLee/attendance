@@ -100,7 +100,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', s
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   cursor: pointer; font-size: 12px; font-weight: 500; gap: 0;
   transition: background 0.15s; position: relative;
-  overflow: hidden; min-width: 0;
+  overflow: hidden; min-width: 0; max-height: 100%;
 }
 .cal-day:active { transform: scale(0.9); }
 .cal-day.empty { cursor: default; }
@@ -599,27 +599,27 @@ input::placeholder { color: var(--border); }
 // ══════════════════════════════════════════
 const HOLIDAY_MAP = {
   '2026-01-01': '신정',
-  '2026-01-28': '설날 연휴',
+  '2026-01-28': '설연휴',
   '2026-01-29': '설날',
-  '2026-01-30': '설날 연휴',
-  '2026-02-16': '설날 대체공휴일',
+  '2026-01-30': '설연휴',
+  '2026-02-16': '설대체',
   '2026-03-01': '삼일절',
-  '2026-03-02': '삼일절 대체공휴일',
-  '2026-05-01': '근로자의 날',
+  '2026-03-02': '삼일절대체',
+  '2026-05-01': '근로자의날',
   '2026-05-05': '어린이날',
   '2026-05-24': '부처님오신날',
-  '2026-05-25': '부처님오신날 대체공휴일',
-  '2026-06-03': '지방선거일',
+  '2026-05-25': '부처님대체',
+  '2026-06-03': '지방선거',
   '2026-06-06': '현충일',
   '2026-07-17': '제헌절',
   '2026-08-15': '광복절',
-  '2026-08-17': '광복절 대체공휴일',
-  '2026-09-24': '추석 연휴',
+  '2026-08-17': '광복절대체',
+  '2026-09-24': '추석연휴',
   '2026-09-25': '추석',
-  '2026-09-26': '추석 연휴',
-  '2026-09-27': '추석 연휴',
+  '2026-09-26': '추석연휴',
+  '2026-09-27': '추석연휴',
   '2026-10-03': '개천절',
-  '2026-10-05': '개천절 대체공휴일',
+  '2026-10-05': '개천절대체',
   '2026-10-09': '한글날',
   '2026-12-25': '크리스마스',
 };
@@ -970,7 +970,7 @@ function renderCal(){
     const hname = getHolidayName(ds);
     html+=`<div class="${cls}" onclick="selectDate('${ds}')">
       <span style="${numColor}">${d}</span>
-      ${hname ? `<span style="position:absolute;bottom:1px;left:0;right:0;font-size:6.5px;color:#e03e3e;line-height:1;text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 2px;pointer-events:none">${hname}</span>` : ''}
+      ${hname ? `<span style="position:absolute;bottom:1px;left:50%;transform:translateX(-50%);font-size:6px;color:#e03e3e;line-height:1;white-space:nowrap;pointer-events:none;letter-spacing:-0.3px">${hname}</span>` : ''}
       ${diffLabel ? `<span style="font-size:8px;opacity:0.85;font-family:'DM Mono',monospace;color:${diffLabel.startsWith('-')?'var(--out)':diffLabel==='8h'?'var(--muted)':'var(--in)'};line-height:1;display:block">${diffLabel}</span>` : dot}
     </div>`;
   }
