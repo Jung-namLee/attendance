@@ -969,7 +969,7 @@ function renderCal(){
     const hname = getHolidayName(ds);
     html+=`<div class="${cls}" onclick="selectDate('${ds}')">
       <span style="${numColor}">${d}</span>
-      ${hname ? `<span style="font-size:8px;color:#e03e3e;line-height:1;display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%">${hname}</span>` : ''}
+      ${hname ? `<span style="position:absolute;bottom:2px;left:0;right:0;font-size:7px;color:#e03e3e;line-height:1;text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 1px">${hname}</span>` : ''}
       ${diffLabel ? `<span style="font-size:9px;opacity:0.85;font-family:'DM Mono',monospace;color:${diffLabel.startsWith('-')?'var(--out)':diffLabel==='8h'?'var(--muted)':'var(--in)'}">${diffLabel}</span>` : dot}
     </div>`;
   }
@@ -1637,20 +1637,20 @@ updateHomeUI();
 // 달력 스와이프
 // ══════════════════════════════════════════
 (function(){
-  let startX=0, startY=0;
-  const calEl = ()=>document.getElementById('calGrid');
+  let startX=0, startY=0, swiping=false;
   document.addEventListener('touchstart', e=>{
-    const el=calEl();
-    if(!el||!el.contains(e.target)) return;
+    const el=document.getElementById('calGrid');
+    if(!el||!el.contains(e.target)){ swiping=false; return; }
     startX=e.touches[0].clientX;
     startY=e.touches[0].clientY;
+    swiping=true;
   },{passive:true});
   document.addEventListener('touchend', e=>{
-    const el=calEl();
-    if(!el||!el.contains(e.changedTouches[0].target)) return;
+    if(!swiping) return;
+    swiping=false;
     const dx=e.changedTouches[0].clientX-startX;
     const dy=e.changedTouches[0].clientY-startY;
-    if(Math.abs(dx)>50 && Math.abs(dx)>Math.abs(dy)*1.5){
+    if(Math.abs(dx)>45 && Math.abs(dx)>Math.abs(dy)*1.2){
       if(dx<0) changeMonth(1);
       else changeMonth(-1);
     }
