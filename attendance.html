@@ -1231,63 +1231,73 @@ function renderCalStats(){
   const overlappingForStat=taskList.filter(t=>t.start<=calEnd&&t.end>=calStart);
   const curTaskForStat=overlappingForStat.find(t=>today>=t.start&&today<=t.end)||overlappingForStat[0];
 
-  // 누적시간 칸: 과제 있으면 누적 부족/초과, 없으면 기존 미달 일수
+  // ── 누적시간 계산 ──
+  // 과제 시작일 ~ 오늘(또는 과제 종료일)까지 하루씩 순회하며
+  // 실제 인정시간 합계 - 목표시간 합계 = 누적 차이
+  //   평일:      목표 8h, 인정 = 실근무(기록 없으면 0)
+  //   주말/공휴일: 목표 8h, 인정 = 8h + 추가 실근무(기록 있으면)
   let accumHtml, accumLabel;
   if(curTaskForStat){
-    const taskEnd = today <= curTaskForStat.end ? today : curTaskForStat.end;
+    // 종료 기준: 오늘과 과제 종료일 중 빠른 날
+    let endDate = today <= curTaskForStat.end ? today : curTaskForStat.end;
 
-    // 오늘 기록 없으면 어제까지만
-    let cutoffForExpect = taskEnd;
-    const todayEntry = records.find(r=>r.date===today&&r.in&&r.out);
-    if(!todayEntry && today<=curTaskForStat.end){
-      const yd = new Date(today+'T00:00:00'); yd.setDate(yd.getDate()-1);
-      cutoffForExpect = `${yd.getFullYear()}-${pad(yd.getMonth()+1)}-${pad(yd.getDate())}`;
-    }
-
-    // 과제시작 ~ cutoff 까지 날짜별 순회
-    // 평일: 기록있으면 실근무, 없으면 0 (미달)
-    // 주말: 기록있으면 실근무+480, 없으면 480 (기본 8h)
-    let accumActual = 0;
-    let expectedMins = 0;
+    let diffMins = 0; // 인정 - 목표 누적
     let cur3 = curTaskForStat.start;
-    while(cur3 <= cutoffForExpect){
+    let guard = 0;
+    while(cur3 <= endDate && guard < 1000){
+      guard++;
       const dow = new Date(cur3+'T00:00:00').getDay();
-      const isWeekend = (dow===0||dow===6);
+      const isWeekend = (dow===0 || dow===6);
       const isHoliday = HOLIDAYS.has(cur3);
-      const entry3 = records.find(r=>r.date===cur3&&r.in&&r.out);
-      const worked = entry3 ? minsOf(entry3.in, entry3.out, entry3.outing) : 0;
+      const e3 = records.find(r=>r.date===cur3 && r.in && r.out);
+      const worked = e3 ? minsOf(e3.in, e3.out, e3.outing) : 0;
 
       if(isWeekend || isHoliday){
-        // 주말/공휴일: 기본 8h + 실근무(있으면 추가)
-        accumActual += 480 + worked;
-        expectedMins += 480;
+        // 목표 8h, 인정 = 기본 8h + 추가근무 → diff = worked
+        diffMins += worked;
       } else {
-        // 평일: 실근무만, 목표 8h
-        accumActual += worked;
-        expectedMins += 480;
+        // 목표 8h, 인정 = worked → diff = worked - 480
+        diffMins += (worked - 480);
       }
 
       const tmp = new Date(cur3+'T00:00:00'); tmp.setDate(tmp.getDate()+1);
       cur3 = `${tmp.getFullYear()}-${pad(tmp.getMonth()+1)}-${pad(tmp.getDate())}`;
     }
 
-    const accumDiff = accumActual - expectedMins;
-    const absD = Math.abs(accumDiff);
+    const absD = Math.abs(diffMins);
     const ah = Math.floor(absD/60), am = absD%60;
-    const fmtAccum = `${ah}h${am>0?' '+am+'m':''}`;
-    if(accumDiff<0){
-      accumHtml=`<div class="stat-value red">-${fmtAccum}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">누적 부족</div>`;
-    } else if(accumDiff>0){
-      accumHtml=`<div class="stat-value green">+${fmtAccum}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">누적 초과</div>`;
+    const fmtAccum = am>0 ? `${ah}h ${am}m` : `${ah}h`;
+
+    if(diffMins > 0){
+      accumHtml = `<div class="stat-value green">+${fmtAccum}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">누적 초과</div>`;
+    } else if(diffMins < 0){
+      accumHtml = `<div class="stat-value red">-${fmtAccum}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">누적 부족</div>`;
     } else {
-      accumHtml=`<div class="stat-value green">±0h</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">딱 맞음</div>`;
+      accumHtml = `<div class="stat-value green">±0h</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">딱 맞음</div>`;
     }
-    accumLabel=`누적시간<br><span style="font-size:10px;font-weight:400">${curTaskForStat.name}</span>`;
+    accumLabel = `누적시간<br><span style="font-size:10px;font-weight:400">${curTaskForStat.name}</span>`;
   } else {
-    const shortMins = shortDays * 480 - monthly.filter(r=>minsOf(r.in,r.out,r.outing)<480).reduce((s,r)=>s+minsOf(r.in,r.out,r.outing),0);
-    const sh = Math.floor(shortMins/60), sm = shortMins%60;
-    accumHtml=`<div class="stat-value ${shortDays>0?'red':'green'}">${shortDays>0?'-'+sh+'h'+(sm>0?' '+sm+'m':''):'±0h'}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${shortDays>0?'누적 부족':'딱 맞음'}</div>`;
-    accumLabel=`누적시간`;
+    // 과제 없음: 이 달 기준 누적 차이 (평일만)
+    let diffMins = 0;
+    monthly.forEach(r=>{
+      const dow = new Date(r.date+'T00:00:00').getDay();
+      const isWeekend = (dow===0 || dow===6);
+      const isHoliday = HOLIDAYS.has(r.date);
+      const worked = minsOf(r.in, r.out, r.outing);
+      if(isWeekend || isHoliday) diffMins += worked;
+      else diffMins += (worked - 480);
+    });
+    const absD = Math.abs(diffMins);
+    const ah = Math.floor(absD/60), am = absD%60;
+    const fmtAccum = am>0 ? `${ah}h ${am}m` : `${ah}h`;
+    if(diffMins > 0){
+      accumHtml = `<div class="stat-value green">+${fmtAccum}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">누적 초과</div>`;
+    } else if(diffMins < 0){
+      accumHtml = `<div class="stat-value red">-${fmtAccum}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">누적 부족</div>`;
+    } else {
+      accumHtml = `<div class="stat-value green">±0h</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">딱 맞음</div>`;
+    }
+    accumLabel = `누적시간`;
   }
 
   document.getElementById('calStatTitle').textContent=`📊 ${calMonth+1}월 요약`;
