@@ -279,6 +279,22 @@ input::placeholder { color: var(--border); }
     <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/..." />
     <button class="save-btn" onclick="saveSettings()">저장</button>
   </div>
+
+  <div class="card">
+    <div class="card-title">💾 백업 / 복원</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.7;">
+      앱 삭제 또는 기기 교체 전에 백업해두세요.<br>복원 시 기존 데이터가 덮어씌워져요.
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+      <button onclick="backupData()" style="background:#e6f0ff;border:1.5px solid #a8c4f5;color:#1a5bbf;border-radius:14px;padding:14px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">📤 백업</button>
+      <button onclick="toggleRestoreArea()" style="background:#fff8e6;border:1.5px solid #f5d88a;color:#b07d00;border-radius:14px;padding:14px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">📥 복원</button>
+    </div>
+    <div id="restoreArea" style="display:none;">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">백업 데이터 붙여넣기</div>
+      <textarea id="restoreInput" style="width:100%;background:#f8f9fd;border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;outline:none;resize:none;min-height:80px;" placeholder="백업 데이터를 여기에 붙여넣기 하세요..."></textarea>
+      <button onclick="restoreData()" style="width:100%;margin-top:8px;background:#fff0f0;border:1.5px solid #f5c0c0;color:var(--out);border-radius:12px;padding:13px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">⚠️ 복원 (기존 데이터 덮어씌움)</button>
+    </div>
+  </div>
 </div>
 
 <!-- ── 달력 ── -->
@@ -1320,6 +1336,59 @@ function saveSettings(){
   settings.scriptUrl=document.getElementById('scriptUrl').value.trim();
   localStorage.setItem('esop_settings',JSON.stringify(settings));
   showToast('✓ 설정 저장됨','success');
+}
+
+// ══════════════════════════════════════════
+// 백업 / 복원
+// ══════════════════════════════════════════
+function backupData(){
+  const data = {
+    records:  JSON.parse(localStorage.getItem('esop_records') ||'[]'),
+    tasks:    JSON.parse(localStorage.getItem('esop_tasks2')  ||'[]'),
+    settings: JSON.parse(localStorage.getItem('esop_settings')||'{}'),
+    version:  '2.2',
+    exported: new Date().toISOString()
+  };
+  const json = JSON.stringify(data);
+  // 클립보드 복사
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(json).then(()=>{
+      showToast('📋 클립보드에 복사됐어요! 메모장 등에 붙여넣기해 보관하세요','success');
+    }).catch(()=>{ showBackupFallback(json); });
+  } else {
+    showBackupFallback(json);
+  }
+}
+
+function showBackupFallback(json){
+  const ta = document.getElementById('restoreInput');
+  document.getElementById('restoreArea').style.display='block';
+  ta.value = json;
+  ta.select();
+  showToast('아래 텍스트를 전체 선택 후 복사해 보관하세요','info');
+}
+
+function toggleRestoreArea(){
+  const el = document.getElementById('restoreArea');
+  el.style.display = el.style.display==='none' ? 'block' : 'none';
+}
+
+function restoreData(){
+  const raw = document.getElementById('restoreInput').value.trim();
+  if(!raw){ showToast('백업 데이터를 붙여넣기 해주세요','error'); return; }
+  let data;
+  try { data = JSON.parse(raw); } catch(e){ showToast('올바른 백업 데이터가 아니에요','error'); return; }
+  if(!data.records && !data.tasks){ showToast('올바른 백업 데이터가 아니에요','error'); return; }
+
+  if(data.records) { localStorage.setItem('esop_records',  JSON.stringify(data.records));  records  = data.records; }
+  if(data.tasks)   { localStorage.setItem('esop_tasks2',   JSON.stringify(data.tasks));    taskList = data.tasks; }
+  if(data.settings){ localStorage.setItem('esop_settings', JSON.stringify(data.settings)); settings = data.settings;
+    if(settings.scriptUrl) document.getElementById('scriptUrl').value = settings.scriptUrl; }
+
+  document.getElementById('restoreInput').value='';
+  document.getElementById('restoreArea').style.display='none';
+  updateHomeUI();
+  showToast('✅ 복원 완료! 데이터가 복구됐어요','success');
 }
 
 // ══════════════════════════════════════════
