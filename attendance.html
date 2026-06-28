@@ -1284,7 +1284,9 @@ function renderCalStats(){
     }
     accumLabel=`누적시간<br><span style="font-size:10px;font-weight:400">${curTaskForStat.name}</span>`;
   } else {
-    accumHtml=`<div class="stat-value ${shortDays>0?'red':'green'}">${shortDays}일</div>`;
+    const shortMins = shortDays * 480 - monthly.filter(r=>minsOf(r.in,r.out,r.outing)<480).reduce((s,r)=>s+minsOf(r.in,r.out,r.outing),0);
+    const sh = Math.floor(shortMins/60), sm = shortMins%60;
+    accumHtml=`<div class="stat-value ${shortDays>0?'red':'green'}">${shortDays>0?'-'+sh+'h'+(sm>0?' '+sm+'m':''):'±0h'}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${shortDays>0?'누적 부족':'딱 맞음'}</div>`;
     accumLabel=`누적시간`;
   }
 
