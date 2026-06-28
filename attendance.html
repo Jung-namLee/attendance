@@ -1231,37 +1231,69 @@ function renderCalStats(){
   const overlappingForStat=taskList.filter(t=>t.start<=calEnd&&t.end>=calStart);
   const curTaskForStat=overlappingForStat.find(t=>today>=t.start&&today<=t.end)||overlappingForStat[0];
 
-  // 8h 미달 칸: 과제 있으면 누적 부족/초과, 없으면 기존 미달 일수
+  // 누적시간 칸: 과제 있으면 누적 부족/초과, 없으면 기존 미달 일수
   let accumHtml, accumLabel;
   if(curTaskForStat){
-    const cutoff=today<=curTaskForStat.end?today:curTaskForStat.end;
-    const expectedWorkDays=countWorkDays(curTaskForStat.start,cutoff);
-    const expectedMins=expectedWorkDays*480;
-    let accumActual=0;
-    records.forEach(r=>{ if(r.date>=curTaskForStat.start&&r.date<=cutoff&&r.in&&r.out) accumActual+=minsOf(r.in,r.out,r.outing); });
-    const accumDiff=accumActual-expectedMins;
-    const absD=Math.abs(accumDiff);
-    const ah=Math.floor(absD/60),am=absD%60;
-    const fmtAccum=`${ah}h${am>0?' '+am+'m':''}`;
+    const taskEnd = today <= curTaskForStat.end ? today : curTaskForStat.end;
+
+    // 오늘 기록 없으면 어제까지만
+    let cutoffForExpect = taskEnd;
+    const todayEntry = records.find(r=>r.date===today&&r.in&&r.out);
+    if(!todayEntry && today<=curTaskForStat.end){
+      const yd = new Date(today+'T00:00:00'); yd.setDate(yd.getDate()-1);
+      cutoffForExpect = `${yd.getFullYear()}-${pad(yd.getMonth()+1)}-${pad(yd.getDate())}`;
+    }
+
+    // 과제시작 ~ cutoff 까지 날짜별 순회
+    // 평일: 기록있으면 실근무, 없으면 0 (미달)
+    // 주말: 기록있으면 실근무+480, 없으면 480 (기본 8h)
+    let accumActual = 0;
+    let expectedMins = 0;
+    let cur3 = curTaskForStat.start;
+    while(cur3 <= cutoffForExpect){
+      const dow = new Date(cur3+'T00:00:00').getDay();
+      const isWeekend = (dow===0||dow===6);
+      const isHoliday = HOLIDAYS.has(cur3);
+      const entry3 = records.find(r=>r.date===cur3&&r.in&&r.out);
+      const worked = entry3 ? minsOf(entry3.in, entry3.out, entry3.outing) : 0;
+
+      if(isWeekend || isHoliday){
+        // 주말/공휴일: 기본 8h + 실근무(있으면 추가)
+        accumActual += 480 + worked;
+        expectedMins += 480;
+      } else {
+        // 평일: 실근무만, 목표 8h
+        accumActual += worked;
+        expectedMins += 480;
+      }
+
+      const tmp = new Date(cur3+'T00:00:00'); tmp.setDate(tmp.getDate()+1);
+      cur3 = `${tmp.getFullYear()}-${pad(tmp.getMonth()+1)}-${pad(tmp.getDate())}`;
+    }
+
+    const accumDiff = accumActual - expectedMins;
+    const absD = Math.abs(accumDiff);
+    const ah = Math.floor(absD/60), am = absD%60;
+    const fmtAccum = `${ah}h${am>0?' '+am+'m':''}`;
     if(accumDiff<0){
-      accumHtml=`<div class="stat-value red">-${fmtAccum}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">누적 미달</div>`;
+      accumHtml=`<div class="stat-value red">-${fmtAccum}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">누적 부족</div>`;
     } else if(accumDiff>0){
       accumHtml=`<div class="stat-value green">+${fmtAccum}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">누적 초과</div>`;
     } else {
       accumHtml=`<div class="stat-value green">±0h</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">딱 맞음</div>`;
     }
-    accumLabel=`8h 누적<br><span style="font-size:10px;font-weight:400">${curTaskForStat.name}</span>`;
+    accumLabel=`누적시간<br><span style="font-size:10px;font-weight:400">${curTaskForStat.name}</span>`;
   } else {
     accumHtml=`<div class="stat-value ${shortDays>0?'red':'green'}">${shortDays}일</div>`;
-    accumLabel=`8h 미달`;
+    accumLabel=`누적시간`;
   }
 
   document.getElementById('calStatTitle').textContent=`📊 ${calMonth+1}월 요약`;
   document.getElementById('calStatGrid').innerHTML=`
     <div class="stat-item"><div class="stat-label">출근 일수</div><div class="stat-value green">${workedDays}일</div></div>
-    <div class="stat-item"><div class="stat-label">실근무 합계</div><div class="stat-value">${th}h ${tm}m</div></div>
-    <div class="stat-item"><div class="stat-label">일평균</div><div class="stat-value">${Math.floor(avg/60)}h ${avg%60}m</div></div>
     <div class="stat-item"><div class="stat-label" style="line-height:1.4">${accumLabel}</div>${accumHtml}</div>
+    <div class="stat-item"><div class="stat-label">일평균</div><div class="stat-value">${Math.floor(avg/60)}h ${avg%60}m</div></div>
+    <div class="stat-item"><div class="stat-label">실근무 합계</div><div class="stat-value">${th}h ${tm}m</div></div>
   `;
 
   // 이 달에 겹치는 과제 찾아서 진행현황 렌더링
