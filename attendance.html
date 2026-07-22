@@ -844,27 +844,40 @@ function playBeep(kind){
   function knock(t0){
     [0,0.16].forEach(d=>{
       const st=t0+d;
+      // 저음 바디 (쿵) — 볼륨 상향
       const o=ctx.createOscillator();
       o.type='sine';
       o.frequency.setValueAtTime(220,st);
       o.frequency.exponentialRampToValueAtTime(90,st+0.06);
       const g=ctx.createGain();
       g.gain.setValueAtTime(0.0001,st);
-      g.gain.exponentialRampToValueAtTime(0.5,st+0.004);
-      g.gain.exponentialRampToValueAtTime(0.0001,st+0.09);
+      g.gain.exponentialRampToValueAtTime(0.9,st+0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001,st+0.11);
       o.connect(g); g.connect(ctx.destination);
-      o.start(st); o.stop(st+0.10);
+      o.start(st); o.stop(st+0.12);
+      // 중음 '톡' — 저음만 있으면 작게 들려서 귀에 잘 꽂히는 중音 추가
+      const o2=ctx.createOscillator();
+      o2.type='triangle';
+      o2.frequency.setValueAtTime(520,st);
+      o2.frequency.exponentialRampToValueAtTime(300,st+0.04);
+      const g2=ctx.createGain();
+      g2.gain.setValueAtTime(0.0001,st);
+      g2.gain.exponentialRampToValueAtTime(0.5,st+0.003);
+      g2.gain.exponentialRampToValueAtTime(0.0001,st+0.06);
+      o2.connect(g2); g2.connect(ctx.destination);
+      o2.start(st); o2.stop(st+0.07);
+      // 나무 질감 노이즈 — 볼륨 상향
       const nb=ctx.createBuffer(1, ctx.sampleRate*0.04, ctx.sampleRate);
       const arr=nb.getChannelData(0);
       for(let j=0;j<arr.length;j++) arr[j]=(Math.random()*2-1);
       const src=ctx.createBufferSource(); src.buffer=nb;
-      const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=800;
+      const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1200;
       const ng=ctx.createGain();
       ng.gain.setValueAtTime(0.0001,st);
-      ng.gain.exponentialRampToValueAtTime(0.22,st+0.003);
-      ng.gain.exponentialRampToValueAtTime(0.0001,st+0.05);
+      ng.gain.exponentialRampToValueAtTime(0.45,st+0.003);
+      ng.gain.exponentialRampToValueAtTime(0.0001,st+0.06);
       src.connect(lp); lp.connect(ng); ng.connect(ctx.destination);
-      src.start(st); src.stop(st+0.05);
+      src.start(st); src.stop(st+0.06);
     });
   }
 
