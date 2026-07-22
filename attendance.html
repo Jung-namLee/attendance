@@ -69,6 +69,16 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', s
   transition: transform 0.12s;
 }
 .btn:active { transform: scale(0.95); }
+/* 눌렸을 때 빨간 테두리 플래시 */
+.btn.pressed {
+  animation: pressFlash 0.55s ease-out;
+}
+@keyframes pressFlash {
+  0%   { box-shadow: 0 0 0 0 rgba(224,62,62,0.9); border-color: #e03e3e; }
+  30%  { box-shadow: 0 0 0 4px rgba(224,62,62,0.35); border-color: #e03e3e; }
+  100% { box-shadow: 0 0 0 8px rgba(224,62,62,0); }
+}
+.btn.pressed { outline: 2.5px solid #e03e3e; outline-offset: -1px; }
 .btn-in  { background: #e6fff6; border: 1.5px solid #b3f0d9; color: var(--in); }
 .btn-out { background: #fff0f0; border: 1.5px solid #f5c0c0; color: var(--out); }
 .btn-icon { font-size: 28px; } .btn-label { font-size: 18px; font-weight: 700; } .btn-sub { font-size: 10px; opacity: 0.6; }
@@ -731,7 +741,184 @@ function switchTab(tab){
 // ══════════════════════════════════════════
 // 출퇴근 기록
 // ══════════════════════════════════════════
+// ══════════════════════════════════════════
+// 버튼 누름 효과: 빨간 테두리 플래시 + 귀여운 효과음
+// ══════════════════════════════════════════
+let _audioCtx=null;
+function _actx(){
+  if(!_audioCtx){
+    try{ _audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; }
+  }
+  if(_audioCtx.state==='suspended') _audioCtx.resume();
+  return _audioCtx;
+}
+// 첫 터치 때 오디오를 미리 깨워서 첫 소리 지연 제거
+function _warmAudio(){
+  const ctx=_actx(); if(!ctx) return;
+  // 무음 버퍼 한 번 재생 → 이후 소리 즉시 발동
+  const b=ctx.createBuffer(1,1,ctx.sampleRate);
+  const s=ctx.createBufferSource(); s.buffer=b; s.connect(ctx.destination); s.start(0);
+}
+document.addEventListener('touchstart',_warmAudio,{once:true,passive:true});
+document.addEventListener('click',_warmAudio,{once:true});
+// 짧고 귀여운 뿅~ 소리. kind에 따라 음정을 달리함
+function playBeep(kind){
+  const ctx=_actx(); if(!ctx) return;
+  const now=ctx.currentTime;
+
+  // ── 출근: 타자 치는 소리 (짧은 딸깍 여러 번) ──
+  function typing(t0){
+    const clicks=[0,0.06,0.12,0.19,0.25]; // 다다닥
+    clicks.forEach((d,i)=>{
+      const st=t0+d;
+      // 짧은 노이즈 버스트 = 키 딸깍
+      const nb=ctx.createBuffer(1, ctx.sampleRate*0.03, ctx.sampleRate);
+      const arr=nb.getChannelData(0);
+      for(let j=0;j<arr.length;j++) arr[j]=(Math.random()*2-1);
+      const src=ctx.createBufferSource(); src.buffer=nb;
+      const bp=ctx.createBiquadFilter();
+      bp.type='bandpass'; bp.frequency.value=2500+Math.random()*800; bp.Q.value=4;
+      const g=ctx.createGain();
+      g.gain.setValueAtTime(0.0001,st);
+      g.gain.exponentialRampToValueAtTime(0.32,st+0.002);
+      g.gain.exponentialRampToValueAtTime(0.0001,st+0.03);
+      src.connect(bp); bp.connect(g); g.connect(ctx.destination);
+      src.start(st); src.stop(st+0.035);
+      // 살짝의 저음 '톡' 바디감
+      const o=ctx.createOscillator(); o.type='square'; o.frequency.value=180;
+      const og=ctx.createGain();
+      og.gain.setValueAtTime(0.0001,st);
+      og.gain.exponentialRampToValueAtTime(0.10,st+0.002);
+      og.gain.exponentialRampToValueAtTime(0.0001,st+0.025);
+      o.connect(og); og.connect(ctx.destination);
+      o.start(st); o.stop(st+0.03);
+    });
+  }
+
+  // ── 퇴근: 물방울 떨어지는 소리 (음정이 뚝 떨어지는 동그란 톤) ──
+  // ── 퇴근: 구두 또각 소리 (또-각, 딱딱한 힐 두 번) ──
+  function heels(t0){
+    [0,0.19].forEach((d,idx)=>{
+      const st=t0+d;
+      // 1) 날카로운 어택 트랜지언트 (힐 끝이 바닥 때리는 순간)
+      const nb=ctx.createBuffer(1, ctx.sampleRate*0.03, ctx.sampleRate);
+      const arr=nb.getChannelData(0);
+      for(let j=0;j<arr.length;j++){
+        arr[j]=(Math.random()*2-1)*Math.pow(1-j/arr.length,3); // 아주 빠른 감쇠
+      }
+      const src=ctx.createBufferSource(); src.buffer=nb;
+      const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=1800;
+      const bp=ctx.createBiquadFilter();
+      bp.type='bandpass'; bp.frequency.value=idx===0?3200:3500; bp.Q.value=1.5;
+      const g=ctx.createGain();
+      g.gain.setValueAtTime(0.0001,st);
+      g.gain.exponentialRampToValueAtTime(0.5,st+0.001);
+      g.gain.exponentialRampToValueAtTime(0.0001,st+0.03);
+      src.connect(hp); hp.connect(bp); bp.connect(g); g.connect(ctx.destination);
+      src.start(st); src.stop(st+0.035);
+      // 2) 짧고 단단한 '똑' 바디 (딱딱한 나무/타일 울림)
+      const o=ctx.createOscillator();
+      o.type='triangle';
+      o.frequency.setValueAtTime(idx===0?1250:1400,st);
+      o.frequency.exponentialRampToValueAtTime(idx===0?780:880,st+0.018);
+      const og=ctx.createGain();
+      og.gain.setValueAtTime(0.0001,st);
+      og.gain.exponentialRampToValueAtTime(0.28,st+0.001);
+      og.gain.exponentialRampToValueAtTime(0.0001,st+0.03);
+      o.connect(og); og.connect(ctx.destination);
+      o.start(st); o.stop(st+0.035);
+      // 3) 아주 옅은 저음 쿵 (무게감)
+      const lo=ctx.createOscillator();
+      lo.type='sine'; lo.frequency.setValueAtTime(200,st);
+      lo.frequency.exponentialRampToValueAtTime(120,st+0.02);
+      const lg=ctx.createGain();
+      lg.gain.setValueAtTime(0.0001,st);
+      lg.gain.exponentialRampToValueAtTime(0.12,st+0.002);
+      lg.gain.exponentialRampToValueAtTime(0.0001,st+0.03);
+      lo.connect(lg); lg.connect(ctx.destination);
+      lo.start(st); lo.stop(st+0.035);
+    });
+  }
+
+  // ── 출근: 노크 소리 (똑-똑, 낮고 둔탁한 두 번) ──
+  function knock(t0){
+    [0,0.16].forEach(d=>{
+      const st=t0+d;
+      const o=ctx.createOscillator();
+      o.type='sine';
+      o.frequency.setValueAtTime(220,st);
+      o.frequency.exponentialRampToValueAtTime(90,st+0.06);
+      const g=ctx.createGain();
+      g.gain.setValueAtTime(0.0001,st);
+      g.gain.exponentialRampToValueAtTime(0.5,st+0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001,st+0.09);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(st); o.stop(st+0.10);
+      const nb=ctx.createBuffer(1, ctx.sampleRate*0.04, ctx.sampleRate);
+      const arr=nb.getChannelData(0);
+      for(let j=0;j<arr.length;j++) arr[j]=(Math.random()*2-1);
+      const src=ctx.createBufferSource(); src.buffer=nb;
+      const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=800;
+      const ng=ctx.createGain();
+      ng.gain.setValueAtTime(0.0001,st);
+      ng.gain.exponentialRampToValueAtTime(0.22,st+0.003);
+      ng.gain.exponentialRampToValueAtTime(0.0001,st+0.05);
+      src.connect(lp); lp.connect(ng); ng.connect(ctx.destination);
+      src.start(st); src.stop(st+0.05);
+    });
+  }
+
+  // ── 외출: 맑게 올라가는 뾰용 (처음 버전 소리) ──
+  function chime(t0){
+    [[880,0],[1320,0.09]].forEach(([freq,d])=>{
+      const st=t0+d;
+      const o=ctx.createOscillator(); o.type='triangle'; o.frequency.value=freq;
+      const g=ctx.createGain();
+      g.gain.setValueAtTime(0.0001,st);
+      g.gain.exponentialRampToValueAtTime(0.26,st+0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001,st+0.16);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(st); o.stop(st+0.18);
+    });
+  }
+
+  // ── 복귀: 외출과 비슷한 계열, 부드럽게 내려오는 뾰용~ ──
+  function chimeBack(t0){
+    [[1320,0],[880,0.09]].forEach(([freq,d])=>{  // 외출과 반대로 내려옴
+      const st=t0+d;
+      const o=ctx.createOscillator(); o.type='triangle'; o.frequency.value=freq;
+      const g=ctx.createGain();
+      g.gain.setValueAtTime(0.0001,st);
+      g.gain.exponentialRampToValueAtTime(0.26,st+0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001,st+0.16);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(st); o.stop(st+0.18);
+    });
+  }
+
+  if(kind==='in')       knock(now);
+  else if(kind==='out') heels(now);
+  else if(kind==='outing') chime(now);
+  else if(kind==='back')   chimeBack(now);
+  else chime(now);
+}
+function pressFx(kind){
+  // 효과음 먼저 (지연 최소화)
+  playBeep(kind);
+  // 시각 효과: 방금 누른 버튼에 빨간 테두리 플래시
+  const btn = (window.event && window.event.currentTarget) ? window.event.currentTarget : null;
+  if(btn && btn.classList){
+    btn.classList.remove('pressed');
+    void btn.offsetWidth;            // 애니메이션 재시작 트릭
+    btn.classList.add('pressed');
+    setTimeout(()=>btn.classList.remove('pressed'),600);
+  }
+  // 진동(지원 기기)
+  if(navigator.vibrate) navigator.vibrate(18);
+}
+
 function record(type){
+  pressFx(type==='in'?'in':'out');
   const n=new Date(), time=`${pad(n.getHours())}:${pad(n.getMinutes())}`, key=todayKey();
   const task=getTaskForDate(key);
   let entry=getEntry(key);
@@ -753,6 +940,7 @@ function record(type){
 // 외출 / 복귀 기록
 // ══════════════════════════════════════════
 function recordOuting(){
+  pressFx('outing');
   const n=new Date(), time=`${pad(n.getHours())}:${pad(n.getMinutes())}`, key=todayKey();
   let entry=getEntry(key);
   if(!entry||!entry.in){ showToast('출근 기록 후 외출 가능해요!','error'); return; }
@@ -768,6 +956,7 @@ function recordOuting(){
 }
 
 function recordBack(){
+  pressFx('back');
   const n=new Date(), time=`${pad(n.getHours())}:${pad(n.getMinutes())}`, key=todayKey();
   let entry=getEntry(key);
   if(!entry||!entry.outing) { showToast('외출 기록이 없어요','error'); return; }
