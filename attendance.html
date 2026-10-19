@@ -154,7 +154,6 @@ input[type="text"], input[type="date"] {
   border-radius: 10px; padding: 11px 14px; color: var(--text);
   font-family: 'Noto Sans KR', sans-serif; font-size: 14px; outline: none;
 }
-input[type="date"] { color-scheme: dark; }
 input::placeholder { color: var(--border); }
 .add-btn {
   width: 100%; background: rgba(0,229,160,0.1); border: 1px solid rgba(0,229,160,0.3);
@@ -221,6 +220,24 @@ input::placeholder { color: var(--border); }
 .toast.success { border-color: var(--in); color: var(--in); box-shadow: 0 4px 16px rgba(0,184,122,0.15); }
 .toast.error   { border-color: var(--out); color: var(--out); box-shadow: 0 4px 16px rgba(224,62,62,0.15); }
 .toast.info    { border-color: var(--muted); color: var(--text); }
+
+/* ── 앱 내 날짜 선택기 ── */
+.date-pick { cursor: pointer; }
+.dp-overlay { position: fixed; inset: 0; background: rgba(20,22,40,0.45); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 16px; }
+.dp-overlay.show { display: flex; }
+.dp-box { background: #fff; border-radius: 16px; width: 100%; max-width: 340px; padding: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+.dp-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.dp-head span { font-weight: 700; font-size: 15px; color: var(--text); }
+.dp-nav { background: none; border: none; font-size: 22px; color: var(--accent); padding: 4px 12px; cursor: pointer; }
+.dp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+.dp-dow { font-size: 11px; color: var(--muted); padding: 4px 0; font-weight: 700; }
+.dp-day { padding: 10px 0; border-radius: 8px; font-size: 14px; cursor: pointer; color: var(--text); border: none; background: none; font-family: inherit; }
+.dp-day:active { background: #f0eeff; }
+.dp-day.sun { color: var(--out); } .dp-day.sat { color: var(--accent); }
+.dp-day.today { border: 1px solid var(--accent); }
+.dp-day.sel { background: var(--accent); color: #fff; }
+.dp-foot { display: flex; gap: 8px; margin-top: 12px; }
+.dp-foot button { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: #f8f9fd; font-family: inherit; font-size: 13px; cursor: pointer; color: var(--text); }
 </style>
 </head>
 <body>
@@ -407,11 +424,11 @@ input::placeholder { color: var(--border); }
     </div>
     <div class="input-row">
       <div class="input-label">시작일</div>
-      <input type="date" id="newTaskStart" />
+      <input type="text" class="date-pick" id="newTaskStart" readonly placeholder="📅 날짜 선택" />
     </div>
     <div class="input-row">
       <div class="input-label">종료일</div>
-      <input type="date" id="newTaskEnd" />
+      <input type="text" class="date-pick" id="newTaskEnd" readonly placeholder="📅 날짜 선택" />
     </div>
     <button class="add-btn" onclick="addTask()">과제 등록</button>
   </div>
@@ -1145,12 +1162,12 @@ function renderTaskList(){
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
         <div>
           <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">시작일 변경</div>
-          <input type="date" value="${t.start}" style="width:100%;padding:8px 10px;font-size:12px;"
+          <input type="text" class="date-pick" readonly value="${t.start}" style="width:100%;padding:8px 10px;font-size:12px;"
             onchange="updateTaskField(${i},'start',this.value)" />
         </div>
         <div>
           <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">종료일 변경</div>
-          <input type="date" value="${t.end}" style="width:100%;padding:8px 10px;font-size:12px;"
+          <input type="text" class="date-pick" readonly value="${t.end}" style="width:100%;padding:8px 10px;font-size:12px;"
             onchange="updateTaskField(${i},'end',this.value)" />
         </div>
       </div>
@@ -2079,6 +2096,55 @@ updateHomeUI();
   },{passive:true});
 })();
 
+
+// ══════════════════════════════════════════
+// 앱 내 날짜 선택기 (휴대폰 기본 달력이 안 열리는 문제 대응)
+// ══════════════════════════════════════════
+(function(){
+  const ov=document.createElement('div');
+  ov.className='dp-overlay';
+  ov.innerHTML='<div class="dp-box"><div class="dp-head"><button class="dp-nav" data-m="-1">‹</button><span id="dpTitle"></span><button class="dp-nav" data-m="1">›</button></div><div class="dp-grid" id="dpGrid"></div><div class="dp-foot"><button id="dpToday">오늘</button><button id="dpClose">닫기</button></div></div>';
+  document.body.appendChild(ov);
+  let target=null, y=0, m=0;
+  const fmt=(yy,mm,dd)=>`${yy}-${String(mm+1).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+  function draw(){
+    document.getElementById('dpTitle').textContent=`${y}년 ${m+1}월`;
+    const first=new Date(y,m,1).getDay(), last=new Date(y,m+1,0).getDate();
+    const sel=target?target.value:'', tk=todayKey();
+    let h=['일','월','화','수','목','금','토'].map(d=>`<div class="dp-dow">${d}</div>`).join('');
+    for(let i=0;i<first;i++) h+='<div></div>';
+    for(let d=1;d<=last;d++){
+      const ds=fmt(y,m,d), w=(first+d-1)%7;
+      h+=`<button class="dp-day${w===0?' sun':''}${w===6?' sat':''}${ds===tk?' today':''}${ds===sel?' sel':''}" data-d="${ds}">${d}</button>`;
+    }
+    document.getElementById('dpGrid').innerHTML=h;
+  }
+  function pick(ds){
+    if(!target) return;
+    target.value=ds;
+    const t=target; close();
+    t.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+  function close(){ ov.classList.remove('show'); target=null; }
+  document.addEventListener('click',e=>{
+    const el=e.target.closest('.date-pick');
+    if(!el) return;
+    e.preventDefault(); el.blur();
+    target=el;
+    const base=/^\d{4}-\d{2}-\d{2}$/.test(el.value)?new Date(el.value+'T00:00:00'):new Date();
+    y=base.getFullYear(); m=base.getMonth();
+    draw(); ov.classList.add('show');
+  });
+  ov.addEventListener('click',e=>{
+    if(e.target===ov) return close();
+    const nav=e.target.closest('.dp-nav');
+    if(nav){ m+=+nav.dataset.m; if(m>11){m=0;y++;} if(m<0){m=11;y--;} return draw(); }
+    const day=e.target.closest('.dp-day');
+    if(day) return pick(day.dataset.d);
+    if(e.target.id==='dpToday') return pick(todayKey());
+    if(e.target.id==='dpClose') return close();
+  });
+})();
 </script>
 </body>
 </html>
