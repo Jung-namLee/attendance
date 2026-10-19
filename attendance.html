@@ -1699,36 +1699,41 @@ async function sendAllToSheet(){
   if(!list.length){ showToast('보낼 기록이 없어요','info'); return; }
   _sendingAll=true;
   const btn=document.getElementById('sendAllBtn'), label=btn.textContent;
-  let fail=0;
+  let fail=0, lastErr='';
   for(let i=0;i<list.length;i++){
     btn.textContent=`📤 보내는 중… ${i+1} / ${list.length}`;
-    try{
-      await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(sheetPayload(list[i]))});
-    }catch(e){ fail++; }
-    await new Promise(r=>setTimeout(r,800)); // 시트가 순서대로 처리하도록 잠깐 대기
+    const r=await postRecord(list[i]);
+    if(!r.ok){ fail++; lastErr=r.msg; }
+    if(r.old) await new Promise(r=>setTimeout(r,800)); // 예전 방식일 땐 시트가 순서대로 처리하도록 대기
   }
   btn.textContent=label; _sendingAll=false;
-  showToast(fail?`⚠️ ${list.length-fail}개 전송, ${fail}개 실패 — 인터넷 확인 후 다시 눌러주세요`:`✅ 기록 ${list.length}개를 시트로 보냈어요`, fail?'error':'success');
+  showToast(fail?`⚠️ ${list.length-fail}개 저장, ${fail}개 실패 — ${lastErr}`:`✅ 기록 ${list.length}개가 시트에 저장됐어요`, fail?'error':'success');
+}
+
+// 시트에 기록 한 건 저장 → 시트의 실제 응답을 받아서 성공/실패 확인
+async function postRecord(entry){
+  const url=settings.scriptUrl;
+  const q='action=saveRecord&data='+encodeURIComponent(JSON.stringify(sheetPayload(entry)));
+  let res;
+  try{ res=await fetch(url+(url.includes('?')?'&':'?')+q); }
+  catch(e){ return {ok:false, msg:'인터넷 연결 또는 URL을 확인해주세요'}; }
+  let data=null;
+  try{ data=await res.json(); }catch(e){}
+  if(!data){
+    // 예전 스크립트(응답 확인 기능 없음) → 기존 방식으로 전송
+    try{ await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(sheetPayload(entry))}); }catch(e){}
+    return {ok:true, old:true};
+  }
+  if(data.result==='success' && data.row) return {ok:true, sheet:data.sheet, row:data.row};
+  return {ok:false, msg:data.message||'Apps Script를 최신 코드로 업데이트해주세요 (도움말 7번)'};
 }
 
 async function sendToSheet(entry){
-  const url=settings.scriptUrl; if(!url) return;
-  const om=outingMins(entry.outing||[]);
-  try {
-    await fetch(url,{
-      method:'POST', mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        date:entry.date, in:entry.in||'', out:entry.out||'',
-        total:calcRaw(entry.in,entry.out),
-        real:calcReal(entry.in,entry.out,entry.outing),
-        task:entry.task||'',
-        outing: om>0 ? fmtMins(om) : '',
-        outingDetail: (entry.outing||[]).map(o=>`${o.out}→${o.back||'?'}${o.memo?'('+o.memo+')':''}`).join(', ')
-      })
-    });
-    showToast('📊 구글 시트 전송됨','success');
-  } catch(e){ showToast('시트 전송 실패 — 로컬 저장됨','error'); }
+  if(!settings.scriptUrl) return;
+  const r=await postRecord(entry);
+  if(r.ok && r.row) showToast(`📊 시트 '${r.sheet}' ${r.row}행에 저장됨`,'success');
+  else if(r.ok) showToast('📊 구글 시트 전송됨','success');
+  else showToast('⚠️ 시트 저장 실패: '+r.msg,'error');
 }
 
 function refreshSaveBtn(){
@@ -1846,7 +1851,7 @@ function showToast(msg,type='info'){
   const el=document.getElementById('toast');
   el.textContent=msg; el.className=`toast ${type} show`;
   clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>{ el.className='toast'; },2800);
+  toastTimer=setTimeout(()=>{ el.className='toast'; }, type==='error'?6000:2800);
 }
 
 // ══════════════════════════════════════════
@@ -2108,54 +2113,60 @@ function applyRowStyle(sheet, row, dateStr, inT, outT) {
 // ───────────────────────────────────────────────────────────
 // 5. 메인: 출퇴근 기록 수신 (웹앱 POST)
 // ───────────────────────────────────────────────────────────
-function doPost(e) {
-  try {
-    const data  = JSON.parse(e.postData.contents);
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-
-    const date  = data.date || '';
-    const inT   = data.in   || '';
-    const outT  = data.out  || '';
-    const total = calcTotal(inT, outT);
-    const real  = calcReal(inT, outT);
-
-    // 데이터는 5행부터 (1~3: 요약, 4: 헤더)
-    const lastRow = sheet.getLastRow();
-    let targetRow = -1;
-    let found     = false;
-
-    for (let i = 5; i <= lastRow; i++) {
-      if (String(sheet.getRange(i, 1).getValue()) === date) {
-        targetRow = i;
-        found     = true;
-        break;
-      }
-    }
-
-    if (!found) {
-      targetRow = Math.max(lastRow + 1, 5);
-      sheet.getRange(targetRow, 1).setValue(date);
-    }
-
-    if (inT)   sheet.getRange(targetRow, 2).setValue(inT);
-    if (outT)  sheet.getRange(targetRow, 3).setValue(outT);
-    if (total) sheet.getRange(targetRow, 4).setValue(total);
-    if (real)  sheet.getRange(targetRow, 5).setValue(real);
-
-    applyRowStyle(sheet, targetRow, date, inT, outT);
-    updateSummary(sheet);
-
-    return ContentService
-      .createTextOutput(JSON.stringify({ result: 'success' }))
-      .setMimeType(ContentService.MimeType.JSON);
-
-  } catch(err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ result: 'error', message: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
+// 출퇴근 기록이 들어갈 시트 찾기: 4행 A열이 '날짜'인 탭 → 없으면 '과제'가 아닌 첫 번째 탭
+function getRecordSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheets = ss.getSheets();
+  for (const sh of sheets) {
+    if (String(sh.getRange(4, 1).getValue()).trim() === '날짜') return sh;
   }
+  for (const sh of sheets) {
+    if (sh.getName() !== '과제') return sh;
+  }
+  return sheets[0];
 }
 
+// 기록 한 건 저장 (같은 날짜가 있으면 덮어쓰기)
+function saveRecordData(data) {
+  const sheet = getRecordSheet();
+  const date  = String(data.date || '').trim();
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) throw new Error('날짜 형식이 잘못됐어요: ' + date);
+  const inT   = data.in   || '';
+  const outT  = data.out  || '';
+  const total = calcTotal(inT, outT);
+  const real  = calcReal(inT, outT);
+
+  // 데이터는 5행부터 (1~3: 요약, 4: 헤더)
+  const lastRow = sheet.getLastRow();
+  let targetRow = -1;
+  if (lastRow >= 5) {
+    const col = sheet.getRange(5, 1, lastRow - 4, 1).getValues();
+    for (let i = 0; i < col.length; i++) {
+      if (toDateKey(col[i][0]) === date) { targetRow = i + 5; break; }
+    }
+  }
+  if (targetRow < 0) targetRow = Math.max(lastRow + 1, 5);
+
+  // 날짜·시간은 글자 그대로 저장 (시트가 날짜/시각으로 바꾸지 않도록)
+  sheet.getRange(targetRow, 1, 1, 3).setNumberFormat('@');
+  sheet.getRange(targetRow, 1).setValue(date);
+  if (inT)   sheet.getRange(targetRow, 2).setValue(inT);
+  if (outT)  sheet.getRange(targetRow, 3).setValue(outT);
+  if (total) sheet.getRange(targetRow, 4).setValue(total);
+  if (real)  sheet.getRange(targetRow, 5).setValue(real);
+
+  applyRowStyle(sheet, targetRow, date, inT, outT);
+  updateSummary(sheet);
+  return { result: 'success', sheet: sheet.getName(), row: targetRow };
+}
+
+function doPost(e) {
+  try {
+    return jsonOut(saveRecordData(JSON.parse(e.postData.contents)));
+  } catch (err) {
+    return jsonOut({ result: 'error', message: err.message });
+  }
+}
 
 // ───────────────────────────────────────────────────────────
 // 6. 테스트용 함수 (Apps Script에서 직접 실행 가능)
@@ -2214,6 +2225,10 @@ function jsonOut(obj) {
 function doGet(e) {
   try {
     const action = (e && e.parameter && e.parameter.action) || '';
+
+    if (action === 'saveRecord') {
+      return jsonOut(saveRecordData(JSON.parse(e.parameter.data || '{}')));
+    }
 
     if (action === 'saveTasks') {
       const tasks = JSON.parse(e.parameter.data || '[]');
