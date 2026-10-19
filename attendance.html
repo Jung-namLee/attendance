@@ -259,6 +259,9 @@ body, button, input, select, textarea { font-weight: 700; }
     <h1>⚡ 출퇴근 기록기</h1>
     <div class="date-now" id="dateDisplay"></div>
   </div>
+  <div id="sheetWarn" onclick="document.getElementById('scriptUrl').scrollIntoView({behavior:'smooth',block:'center'});document.getElementById('scriptUrl').focus();" style="display:none;margin:0 0 12px;background:#fdecea;border:1.5px solid #f5b5ae;color:#c5221f;border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.6;cursor:pointer;">
+    ⚠️ <b>구글 시트가 연결되어 있지 않아요!</b><br>지금 기록은 휴대폰에만 저장돼요. 여기를 눌러 맨 아래 <b>🔗 구글 시트 연결</b>에 URL을 넣어주세요.
+  </div>
 
   <div class="card clock-card">
     <div class="clock">
@@ -316,6 +319,8 @@ body, button, input, select, textarea { font-weight: 700; }
     <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Apps Script 웹앱 URL</div>
     <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/..." />
     <button class="save-btn" onclick="saveSettings()">저장</button>
+    <button id="sendAllBtn" onclick="sendAllToSheet()" style="width:100%;margin-top:10px;background:#f0eeff;border:1.5px solid #c8c0f5;color:var(--accent);border-radius:12px;padding:12px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:900;cursor:pointer;">📤 전체 기록 시트로 다시 보내기</button>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;">시트에 빠진 기록이 있을 때 눌러주세요. 같은 날짜는 덮어써서 중복되지 않아요.</div>
   </div>
 
   <div class="card">
@@ -447,6 +452,8 @@ body, button, input, select, textarea { font-weight: 700; }
   <div class="card">
     <div class="card-title">📁 등록된 과제</div>
     <div id="taskList"></div>
+    <button class="add-btn" onclick="loadTasksFromSheet(false)" style="margin-top:12px;background:#f0eeff;border-color:#c8c0f5;color:var(--accent);">☁️ 구글 시트에서 과제 불러오기</button>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;">과제를 등록·수정하면 구글 시트 '과제' 탭에 자동 저장돼요. 과제가 사라졌을 때 이 버튼으로 되살릴 수 있어요.</div>
   </div>
 </div>
 
@@ -600,6 +607,23 @@ body, button, input, select, textarea { font-weight: 700; }
           <p>※ 앱은 <b>삭제하지 말고</b> 껐다 켜기만 하세요 (앱을 지우면 기록도 지워져요)</p>
         </div>
       </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this)">
+          <span>7. 과제 정보 구글 시트 백업 (스크립트 업데이트)</span><span class="acc-arrow">▸</span>
+        </div>
+        <div class="acc-body">
+          <p>과제를 등록·수정하면 구글 시트의 <b>'과제'</b> 탭에 자동 저장돼요. 과제가 사라지면 앱을 다시 열거나 과제 탭의 <b>☁️ 구글 시트에서 과제 불러오기</b>로 되살릴 수 있어요.</p>
+          <p>⚠️ <b>이미 시트를 연결해서 쓰던 분은 한 번만 아래처럼 업데이트</b>해 주세요 (PC에서)</p>
+          <p>① 구글 시트 → <b>확장 프로그램 → Apps Script</b></p>
+          <p>② 코드 <b>전체 선택(Ctrl+A) → 삭제</b></p>
+          <p>③ 4번 항목의 <b>📋 Apps Script 코드 복사</b> → 붙여넣기 → <b>저장(Ctrl+S)</b></p>
+          <p>④ 오른쪽 위 <b>배포 → 배포 관리</b> 클릭</p>
+          <p>⑤ ✏️ <b>편집</b> → 버전: <b>새 버전</b> 선택 → <b>배포</b></p>
+          <p>※ "새 배포"가 아니라 <b>배포 관리 → 새 버전</b>으로 해야 URL이 그대로라서 앱 설정을 바꿀 필요가 없어요</p>
+          <p>※ 업데이트 후 앱을 한 번 열면 지금 있는 과제가 시트에 자동으로 올라가요</p>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -745,7 +769,7 @@ function pad(n){ return String(n).padStart(2,'0'); }
 function todayKey(){ const n=new Date(); return `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}`; }
 function getEntry(ds){ return records.find(r=>r.date===ds); }
 function saveRecords(){ localStorage.setItem('esop_records',JSON.stringify(records)); }
-function saveTasks(){   localStorage.setItem('esop_tasks2', JSON.stringify(taskList)); }
+function saveTasks(){   localStorage.setItem('esop_tasks2', JSON.stringify(taskList)); syncTasksToSheet(); }
 
 // 날짜에 해당하는 과제 찾기
 function getTaskForDate(ds){
@@ -1062,6 +1086,7 @@ function recordBack(){
 // 홈 UI
 // ══════════════════════════════════════════
 function updateHomeUI(){
+  const sw=document.getElementById('sheetWarn'); if(sw) sw.style.display=settings.scriptUrl?'none':'block';
   const key=todayKey();
   const e=getEntry(key);
   const task=getTaskForDate(key);
@@ -1651,6 +1676,40 @@ function renderCalStats(){
 // ══════════════════════════════════════════
 // 구글 시트 전송
 // ══════════════════════════════════════════
+function sheetPayload(entry){
+  const om=outingMins(entry.outing||[]);
+  return {
+    date:entry.date, in:entry.in||'', out:entry.out||'',
+    total:calcRaw(entry.in,entry.out),
+    real:calcReal(entry.in,entry.out,entry.outing),
+    task:entry.task||'',
+    outing: om>0 ? fmtMins(om) : '',
+    outingDetail: (entry.outing||[]).map(o=>`${o.out}→${o.back||'?'}${o.memo?'('+o.memo+')':''}`).join(', ')
+  };
+}
+
+// 휴대폰에 저장된 모든 출퇴근 기록을 시트로 다시 보내기 (같은 날짜는 시트에서 덮어씀)
+let _sendingAll=false;
+async function sendAllToSheet(){
+  const url=settings.scriptUrl;
+  if(!url){ showToast('먼저 위 칸에 구글 시트 URL을 넣고 저장해주세요','error'); return; }
+  if(_sendingAll) return;
+  const list=records.filter(r=>r.date&&(r.in||r.out)).sort((a,b)=>a.date>b.date?1:-1);
+  if(!list.length){ showToast('보낼 기록이 없어요','info'); return; }
+  _sendingAll=true;
+  const btn=document.getElementById('sendAllBtn'), label=btn.textContent;
+  let fail=0;
+  for(let i=0;i<list.length;i++){
+    btn.textContent=`📤 보내는 중… ${i+1} / ${list.length}`;
+    try{
+      await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(sheetPayload(list[i]))});
+    }catch(e){ fail++; }
+    await new Promise(r=>setTimeout(r,800)); // 시트가 순서대로 처리하도록 잠깐 대기
+  }
+  btn.textContent=label; _sendingAll=false;
+  showToast(fail?`⚠️ ${list.length-fail}개 전송, ${fail}개 실패 — 인터넷 확인 후 다시 눌러주세요`:`✅ 기록 ${list.length}개를 시트로 보냈어요`, fail?'error':'success');
+}
+
 async function sendToSheet(entry){
   const url=settings.scriptUrl; if(!url) return;
   const om=outingMins(entry.outing||[]);
@@ -1674,7 +1733,41 @@ async function sendToSheet(entry){
 function saveSettings(){
   settings.scriptUrl=document.getElementById('scriptUrl').value.trim();
   localStorage.setItem('esop_settings',JSON.stringify(settings));
-  showToast('✓ 설정 저장됨','success');
+  updateHomeUI();
+  showToast('✓ 설정 저장됨','success');  // 과제가 비어 있으면 시트에 저장된 과제 자동 불러오기
+  if(settings.scriptUrl && taskList.length===0) loadTasksFromSheet(true);
+}
+
+// ══════════════════════════════════════════
+// 과제 정보 구글 시트 백업 / 불러오기
+// ══════════════════════════════════════════
+let _taskSyncTimer=null;
+function syncTasksToSheet(){
+  const url=settings.scriptUrl; if(!url) return;
+  clearTimeout(_taskSyncTimer);
+  _taskSyncTimer=setTimeout(()=>{
+    const q='action=saveTasks&data='+encodeURIComponent(JSON.stringify(taskList));
+    fetch(url+(url.includes('?')?'&':'?')+q,{mode:'no-cors'}).catch(()=>{});
+  },500);
+}
+
+async function loadTasksFromSheet(auto){
+  const url=settings.scriptUrl;
+  if(!url){ if(!auto) showToast('먼저 홈 화면에서 구글 시트 URL을 저장해주세요','error'); return; }
+  if(!auto) showToast('☁️ 시트에서 과제 불러오는 중…','info');
+  try{
+    const res=await fetch(url+(url.includes('?')?'&':'?')+'action=getTasks');
+    const data=await res.json();
+    if(data.result!=='success' || !Array.isArray(data.tasks)) throw new Error('bad');
+    if(data.tasks.length===0){ if(!auto) showToast('시트에 저장된 과제가 없어요','info'); return; }
+    if(auto && taskList.length>0) return;
+    taskList=data.tasks.sort((a,b)=>a.start>b.start?1:-1);
+    localStorage.setItem('esop_tasks2',JSON.stringify(taskList));
+    renderTaskList(); updateHomeUI();
+    showToast(`✅ 과제 ${taskList.length}개를 시트에서 불러왔어요`,'success');
+  }catch(e){
+    if(!auto) showToast('불러오기 실패 — Apps Script를 최신 코드로 업데이트했는지 확인해주세요','error');
+  }
 }
 
 // ══════════════════════════════════════════
@@ -2080,6 +2173,64 @@ function testRecord() {
   updateSummary(sheet);
   Logger.log('테스트 완료!');
 }
+
+
+// ───────────────────────────────────────────────────────────
+// 7. 과제 정보 백업 / 불러오기 (웹앱 GET)
+//    ?action=saveTasks&data=[...]  → '과제' 시트에 저장
+//    ?action=getTasks              → 저장된 과제 목록 반환
+// ───────────────────────────────────────────────────────────
+function getTaskSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sh = ss.getSheetByName('과제');
+  if (!sh) sh = ss.insertSheet('과제', ss.getSheets().length); // 맨 뒤에 추가 (출퇴근 시트는 그대로)
+  return sh;
+}
+
+function toDateKey(v) {
+  if (v instanceof Date) return Utilities.formatDate(v, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  return String(v || '').trim();
+}
+
+function jsonOut(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  try {
+    const action = (e && e.parameter && e.parameter.action) || '';
+
+    if (action === 'saveTasks') {
+      const tasks = JSON.parse(e.parameter.data || '[]');
+      if (!Array.isArray(tasks)) return jsonOut({ result: 'error', message: 'invalid data' });
+      const sh = getTaskSheet();
+      sh.clear();
+      sh.getRange(1, 1, 1, 3).setValues([['과제명', '시작일', '종료일']])
+        .setFontWeight('bold').setBackground('#dadce0');
+      if (tasks.length) {
+        const rows = tasks.map(t => [String(t.name || ''), String(t.start || ''), String(t.end || '')]);
+        const rng = sh.getRange(2, 1, rows.length, 3);
+        rng.setNumberFormat('@');   // 날짜를 글자 그대로 저장
+        rng.setValues(rows);
+      }
+      return jsonOut({ result: 'success', count: tasks.length });
+    }
+
+    if (action === 'getTasks') {
+      const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('과제');
+      if (!sh || sh.getLastRow() < 2) return jsonOut({ result: 'success', tasks: [] });
+      const vals = sh.getRange(2, 1, sh.getLastRow() - 1, 3).getValues();
+      const tasks = vals
+        .map(r => ({ name: String(r[0] || '').trim(), start: toDateKey(r[1]), end: toDateKey(r[2]) }))
+        .filter(t => t.name && t.start && t.end);
+      return jsonOut({ result: 'success', tasks: tasks });
+    }
+
+    return jsonOut({ result: 'success', message: 'attendance script ok' });
+  } catch (err) {
+    return jsonOut({ result: 'error', message: err.message });
+  }
+}
 `;
   navigator.clipboard.writeText(code).then(() => {
     showToast('✅ 코드가 복사됐어요! Apps Script에 붙여넣으세요', 'success');
@@ -2103,6 +2254,7 @@ function sendFeedback(){
 // ══════════════════════════════════════════
 if(settings.scriptUrl) document.getElementById('scriptUrl').value=settings.scriptUrl;
 updateHomeUI();
+if(settings.scriptUrl){ if(taskList.length===0) loadTasksFromSheet(true); else syncTasksToSheet(); }
 
 // ══════════════════════════════════════════
 // 달력 스와이프
