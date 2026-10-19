@@ -50,15 +50,15 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', s
 
 /* ── 카드 ── */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 18px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-.card-title { font-size: 11px; font-weight: 400; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 14px; }
+.card-title { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 14px; }
 
 /* ── 헤더/시계 ── */
 .header { text-align: center; padding: 16px 0 0; }
-.header h1 { font-size: 12px; font-weight: 400; letter-spacing: 0.25em; color: var(--muted); }
+.header h1 { font-size: 12px; font-weight: 700; letter-spacing: 0.25em; color: var(--muted); }
 .date-now { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); opacity: 0.6; margin-top: 4px; }
 .clock-card { text-align: center; background: linear-gradient(135deg, #e6fff6, #f0eeff); }
-.clock { font-family: 'DM Mono', monospace; font-size: 50px; font-weight: 700; letter-spacing: -1px; line-height: 1; color: var(--text); }
-.clock-sec { font-size: 28px; color: var(--muted); font-weight: 400; }
+.clock { font-family: 'DM Mono', monospace; font-size: 50px; font-weight: 900; letter-spacing: -1px; line-height: 1; color: var(--text); }
+.clock-sec { font-size: 28px; color: var(--muted); font-weight: 700; }
 
 /* ── 버튼 ── */
 .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -81,13 +81,13 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', s
 .btn.pressed { outline: 2.5px solid #e03e3e; outline-offset: -1px; }
 .btn-in  { background: #e6fff6; border: 1.5px solid #b3f0d9; color: var(--in); }
 .btn-out { background: #fff0f0; border: 1.5px solid #f5c0c0; color: var(--out); }
-.btn-icon { font-size: 28px; } .btn-label { font-size: 18px; font-weight: 700; } .btn-sub { font-size: 10px; opacity: 0.6; }
+.btn-icon { font-size: 28px; } .btn-label { font-size: 18px; font-weight: 900; } .btn-sub { font-size: 10px; opacity: 0.6; }
 
 /* ── 오늘 기록 ── */
 .today-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); }
 .today-row:last-child { border-bottom: none; }
 .t-label { font-size: 13px; color: var(--muted); }
-.t-val { font-family: 'DM Mono', monospace; font-size: 15px; font-weight: 500; }
+.t-val { font-family: 'DM Mono', monospace; font-size: 15px; font-weight: 700; }
 .t-val.in { color: var(--in); } .t-val.out { color: var(--out); }
 .t-task { font-size: 13px; color: var(--accent); max-width: 60%; text-align: right; word-break: break-all; }
 
@@ -101,14 +101,14 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', s
 /* ── 달력 ── */
 .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
 .cal-nav button { background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 6px 12px; cursor: pointer; font-size: 16px; }
-.cal-month-title { font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 500; }
+.cal-month-title { font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 700; }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
-.cal-dow { text-align: center; font-size: 10px; color: var(--muted); padding: 4px 0; font-weight: 700; }
+.cal-dow { text-align: center; font-size: 10px; color: var(--muted); padding: 4px 0; font-weight: 900; }
 .cal-dow:first-child { color: var(--out); } .cal-dow:last-child { color: var(--accent); }
 .cal-day {
   aspect-ratio: 1; border-radius: 8px;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  cursor: pointer; font-size: 12px; font-weight: 500; gap: 0;
+  cursor: pointer; font-size: 12px; font-weight: 700; gap: 0;
   transition: background 0.15s; position: relative;
   overflow: hidden; min-width: 0; max-height: 100%;
 }
@@ -116,8 +116,8 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', s
 .cal-day.empty { cursor: default; }
 .cal-day.today { border: 2px solid var(--in); background: #e6fff6; }
 .cal-day.has-record { background: #edfff8; }
-.cal-day.selected { background: #c8f7e8 !important; border: 2.5px solid #e03e3e !important; box-shadow: 0 0 0 2px rgba(224,62,62,0.2); font-weight: 700; }
-.cal-day.sunday { color: #e03e3e; } .cal-day.saturday { color: #5b50d6; } .cal-day.holiday { color: #e03e3e; font-weight: 600; }
+.cal-day.selected { background: #c8f7e8 !important; border: 2.5px solid #e03e3e !important; box-shadow: 0 0 0 2px rgba(224,62,62,0.2); font-weight: 900; }
+.cal-day.sunday { color: #e03e3e; } .cal-day.saturday { color: #5b50d6; } .cal-day.holiday { color: #e03e3e; font-weight: 700; }
 .cal-day.in-task { background: #f0eeff; border-bottom: 2px solid var(--accent); }
 .cal-day.in-task.has-record { background: #e8e4ff; }
 .cal-day.short { background: #ffe8e8 !important; border: 1px solid #f5c0c0; }
@@ -130,7 +130,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', s
 .progress-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
 .progress-row:last-child { border-bottom: none; }
 .p-label { color: var(--muted); }
-.p-val { font-family: "DM Mono", monospace; font-weight: 500; }
+.p-val { font-family: "DM Mono", monospace; font-weight: 700; }
 .p-val.green { color: var(--in); }
 .p-val.red   { color: var(--out); }
 .p-val.accent { color: var(--accent); }
@@ -144,7 +144,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Noto Sans KR', s
 .detail-label { font-size: 13px; color: var(--muted); }
 .detail-val { font-family: 'DM Mono', monospace; font-size: 14px; }
 .detail-val.in { color: var(--in); } .detail-val.out { color: var(--out); }
-.detail-task-name { font-size: 13px; color: var(--accent); font-weight: 700; }
+.detail-task-name { font-size: 13px; color: var(--accent); font-weight: 900; }
 
 /* ── 과제 관리 ── */
 .input-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
@@ -158,7 +158,7 @@ input::placeholder { color: var(--border); }
 .add-btn {
   width: 100%; background: rgba(0,229,160,0.1); border: 1px solid rgba(0,229,160,0.3);
   border-radius: 10px; padding: 12px; color: var(--in);
-  font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer;
+  font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 900; cursor: pointer;
 }
 .task-item {
   background: var(--bg); border: 1px solid var(--border);
@@ -167,7 +167,7 @@ input::placeholder { color: var(--border); }
 }
 .task-item:last-child { margin-bottom: 0; }
 .task-info { flex: 1; }
-.task-name { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+.task-name { font-size: 14px; font-weight: 900; color: var(--accent); margin-bottom: 4px; }
 .task-period { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
 .task-del { background: none; border: none; color: var(--out); font-size: 18px; cursor: pointer; padding: 4px 8px; }
 .no-task { text-align: center; color: var(--muted); padding: 20px 0; font-size: 13px; }
@@ -176,18 +176,18 @@ input::placeholder { color: var(--border); }
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .stat-item { background: #f8f9fd; border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
 .stat-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
-.stat-value { font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 500; }
+.stat-value { font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 700; }
 .stat-value.green { color: var(--in); } .stat-value.red { color: var(--out); }
 
 /* ── 설정 ── */
-.save-btn { width: 100%; margin-top: 8px; background: #eef0f7; border: 1px solid var(--border); border-radius: 10px; padding: 13px; color: var(--text); font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; }
+.save-btn { width: 100%; margin-top: 8px; background: #eef0f7; border: 1px solid var(--border); border-radius: 10px; padding: 13px; color: var(--text); font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 900; cursor: pointer; }
 
 /* ── 아코디언 ── */
 .accordion { display: flex; flex-direction: column; gap: 8px; }
 .acc-item { background: #f8f9fd; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .acc-header {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 13px 14px; cursor: pointer; font-size: 13px; font-weight: 700;
+  padding: 13px 14px; cursor: pointer; font-size: 13px; font-weight: 900;
   color: var(--text);
 }
 .acc-header:active { background: rgba(255,255,255,0.03); }
@@ -212,7 +212,7 @@ input::placeholder { color: var(--border); }
   transform: translateX(-50%) translateY(30px);
   background: #ffffff; border: 1px solid var(--border);
   border-radius: 12px; padding: 12px 22px;
-  font-size: 14px; font-weight: 500; white-space: nowrap;
+  font-size: 14px; font-weight: 700; white-space: nowrap;
   transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
   opacity: 0; z-index: 200;
 }
@@ -227,10 +227,10 @@ input::placeholder { color: var(--border); }
 .dp-overlay.show { display: flex; }
 .dp-box { background: #fff; border-radius: 16px; width: 100%; max-width: 340px; padding: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
 .dp-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.dp-head span { font-weight: 700; font-size: 15px; color: var(--text); }
+.dp-head span { font-weight: 900; font-size: 15px; color: var(--text); }
 .dp-nav { background: none; border: none; font-size: 22px; color: var(--accent); padding: 4px 12px; cursor: pointer; }
 .dp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
-.dp-dow { font-size: 11px; color: var(--muted); padding: 4px 0; font-weight: 700; }
+.dp-dow { font-size: 11px; color: var(--muted); padding: 4px 0; font-weight: 900; }
 .dp-day { padding: 10px 0; border-radius: 8px; font-size: 14px; cursor: pointer; color: var(--text); border: none; background: none; font-family: inherit; }
 .dp-day:active { background: #f0eeff; }
 .dp-day.sun { color: var(--out); } .dp-day.sat { color: var(--accent); }
@@ -238,6 +238,17 @@ input::placeholder { color: var(--border); }
 .dp-day.sel { background: var(--accent); color: #fff; }
 .dp-foot { display: flex; gap: 8px; margin-top: 12px; }
 .dp-foot button { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: #f8f9fd; font-family: inherit; font-size: 13px; cursor: pointer; color: var(--text); }
+
+/* ── 시간 입력칸: 아이콘 숨김 + 칸 전체 탭으로 시계 열기 ── */
+input[type="time"] { -webkit-appearance: none; appearance: none; box-sizing: border-box; min-width: 0; max-width: 100%; cursor: pointer; text-align: left; }
+input[type="time"]::-webkit-calendar-picker-indicator { display: none; -webkit-appearance: none; }
+input[type="time"]::-webkit-date-and-time-value { text-align: left; }
+input[type="time"] { padding-left: 8px !important; padding-right: 4px !important; font-size: 15px !important; letter-spacing: -0.3px; }
+input[type="time"]::-webkit-datetime-edit { padding: 0; overflow: visible; }
+input[type="time"]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
+
+/* ── 전체 글씨 굵게 ── */
+body, button, input, select, textarea { font-weight: 700; }
 </style>
 </head>
 <body>
@@ -312,14 +323,14 @@ input::placeholder { color: var(--border); }
     <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.7;">
       앱 삭제 또는 기기 교체 전에 백업해두세요.<br>복원 시 기존 데이터가 덮어씌워져요.
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-      <button onclick="backupData()" style="background:#e6f0ff;border:1.5px solid #a8c4f5;color:#1a5bbf;border-radius:14px;padding:14px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">📤 백업</button>
-      <button onclick="toggleRestoreArea()" style="background:#fff8e6;border:1.5px solid #f5d88a;color:#b07d00;border-radius:14px;padding:14px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">📥 복원</button>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-bottom:12px;">
+      <button onclick="backupData()" style="background:#e6f0ff;border:1.5px solid #a8c4f5;color:#1a5bbf;border-radius:14px;padding:14px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:900;cursor:pointer;">📤 백업</button>
+      <button onclick="toggleRestoreArea()" style="background:#fff8e6;border:1.5px solid #f5d88a;color:#b07d00;border-radius:14px;padding:14px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:900;cursor:pointer;">📥 복원</button>
     </div>
     <div id="restoreArea" style="display:none;">
       <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">백업 데이터 붙여넣기</div>
       <textarea id="restoreInput" style="width:100%;background:#f8f9fd;border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;outline:none;resize:none;min-height:80px;" placeholder="백업 데이터를 여기에 붙여넣기 하세요..."></textarea>
-      <button onclick="restoreData()" style="width:100%;margin-top:8px;background:#fff0f0;border:1.5px solid #f5c0c0;color:var(--out);border-radius:12px;padding:13px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">⚠️ 복원 (기존 데이터 덮어씌움)</button>
+      <button onclick="restoreData()" style="width:100%;margin-top:8px;background:#fff0f0;border:1.5px solid #f5c0c0;color:var(--out);border-radius:12px;padding:13px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:900;cursor:pointer;">⚠️ 복원 (기존 데이터 덮어씌움)</button>
     </div>
   </div>
 </div>
@@ -351,14 +362,14 @@ input::placeholder { color: var(--border); }
 
     <!-- ✏️ 수정 버튼 (패널 밖, 항상 표시) -->
     <div id="editWrap" style="display:none;margin-top:10px;">
-      <button id="editToggleBtn" onclick="toggleEditArea()" style="width:100%;background:#f0eeff;border:1.5px solid #c8c0f5;color:var(--accent);border-radius:14px;padding:13px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">
+      <button id="editToggleBtn" onclick="toggleEditArea()" style="width:100%;background:#f0eeff;border:1.5px solid #c8c0f5;color:var(--accent);border-radius:14px;padding:13px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:900;cursor:pointer;">
         ✏️ 기록 수정 / 추가
       </button>
       <!-- 수정 영역 -->
       <div id="editArea" style="margin-top:10px;display:none;background:#f8f9fd;border:1px solid var(--border);border-radius:14px;padding:16px;">
         <!-- 출퇴근 수정 -->
         <div style="font-size:11px;color:var(--muted);margin-bottom:10px;letter-spacing:0.1em;">✏️ 출퇴근 시간 수정</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-bottom:12px;">
           <div>
             <div style="font-size:12px;color:var(--muted);margin-bottom:5px;">출근 시간</div>
             <input type="time" id="editIn" style="width:100%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 12px;color:var(--text);font-size:16px;outline:none;" />
@@ -368,15 +379,15 @@ input::placeholder { color: var(--border); }
             <input type="time" id="editOut" style="width:100%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 12px;color:var(--text);font-size:16px;outline:none;" />
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
-          <button onclick="saveEdit()" style="background:#e6fff6;border:1.5px solid #b3f0d9;color:var(--in);border-radius:12px;padding:14px;font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:700;cursor:pointer;">✅ 저장</button>
-          <button onclick="deleteRecord()" style="background:#fff0f0;border:1.5px solid #f5c0c0;color:var(--out);border-radius:12px;padding:14px;font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:700;cursor:pointer;">🗑 삭제</button>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-bottom:16px;">
+          <button onclick="saveEdit()" style="background:#e6fff6;border:1.5px solid #b3f0d9;color:var(--in);border-radius:12px;padding:14px;font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:900;cursor:pointer;">✅ 저장</button>
+          <button onclick="deleteRecord()" style="background:#fff0f0;border:1.5px solid #f5c0c0;color:var(--out);border-radius:12px;padding:14px;font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:900;cursor:pointer;">🗑 삭제</button>
         </div>
 
         <!-- 외출 추가 -->
         <div style="border-top:1px solid var(--border);padding-top:14px;">
           <div style="font-size:11px;color:var(--muted);margin-bottom:10px;letter-spacing:0.1em;">🚶 외출 시간 추가</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-bottom:8px;">
             <div>
               <div style="font-size:12px;color:var(--muted);margin-bottom:5px;">외출 시간</div>
               <input type="time" id="editOutingOut" style="width:100%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 12px;color:var(--text);font-size:16px;outline:none;" />
@@ -387,7 +398,7 @@ input::placeholder { color: var(--border); }
             </div>
           </div>
           <input type="text" id="editOutingMemo" placeholder="사유 메모 (선택, 예: 하원)" style="width:100%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 12px;color:var(--text);font-size:14px;outline:none;margin-bottom:10px;" />
-          <button onclick="addOutingEdit()" style="width:100%;background:#fff8e6;border:1.5px solid #f5d88a;color:#b07d00;border-radius:12px;padding:12px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">🚶 외출 기록 추가</button>
+          <button onclick="addOutingEdit()" style="width:100%;background:#fff8e6;border:1.5px solid #f5d88a;color:#b07d00;border-radius:12px;padding:12px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:900;cursor:pointer;">🚶 외출 기록 추가</button>
           <!-- 기존 외출 목록 -->
           <div id="editOutingList" style="margin-top:10px;"></div>
         </div>
@@ -532,7 +543,7 @@ input::placeholder { color: var(--border); }
           <p>👉 아래 <b>코드 복사</b> 버튼 탭 → 붙여넣기(Ctrl+V)</p>
           <p>👉 <b>저장(Ctrl+S)</b></p>
           <div style="margin-top:10px;">
-            <button onclick="copyGsCode()" style="width:100%;background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);border-radius:10px;padding:11px;color:var(--in);font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">
+            <button onclick="copyGsCode()" style="width:100%;background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);border-radius:10px;padding:11px;color:var(--in);font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:900;cursor:pointer;">
               📋 Apps Script 코드 복사
             </button>
           </div>
@@ -566,6 +577,27 @@ input::placeholder { color: var(--border); }
           <p>② 오른쪽 위 <b>⋮ → 홈 화면에 추가</b> 탭</p>
           <p>③ 추가 버튼 탭 → 완료!</p>
           <p>※ 삼성 인터넷 말고 <b>크롬</b>으로 해주세요</p>
+        </div>
+      </div>
+
+      <div class="acc-item">
+        <div class="acc-header" onclick="toggleAcc(this)">
+          <span>6. 업데이트가 안 보일 때 (크롬 캐시 삭제)</span><span class="acc-arrow">▸</span>
+        </div>
+        <div class="acc-body">
+          <p>⚠️ <b>"쿠키 및 사이트 데이터"는 절대 체크하지 마세요!</b> 출퇴근 기록과 과제 정보가 사라져요.</p>
+          <p>⚠️ 시작 전에 홈 탭 맨 아래 <b>💾 백업</b>으로 먼저 백업해 두세요</p>
+          <p><b>📱 휴대폰 크롬</b></p>
+          <p>① 크롬 오른쪽 위 <b>⋮</b> (점 세 개) 탭</p>
+          <p>② <b>인터넷 사용 기록 삭제</b> 탭 (없으면 설정 → 개인정보 보호 및 보안 안에 있어요)</p>
+          <p>③ 기간은 <b>전체 기간</b> 선택</p>
+          <p>④ <b>캐시된 이미지 및 파일</b> 하나만 체크, 나머지는 모두 해제</p>
+          <p>⑤ <b>인터넷 사용 기록 삭제</b> 버튼 탭</p>
+          <p>⑥ 출퇴근 앱을 껐다가 다시 열기</p>
+          <p><b>💻 PC 크롬</b></p>
+          <p>① <b>Ctrl + Shift + Delete</b> 누르기</p>
+          <p>② <b>캐시된 이미지 및 파일</b>만 체크하고 <b>데이터 삭제</b></p>
+          <p>※ 앱은 <b>삭제하지 말고</b> 껐다 켜기만 하세요 (앱을 지우면 기록도 지워져요)</p>
         </div>
       </div>
     </div>
@@ -618,7 +650,7 @@ input::placeholder { color: var(--border); }
         <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">내용</div>
         <textarea id="feedbackBody" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;outline:none;resize:none;min-height:100px;" placeholder="내용을 입력해주세요..."></textarea>
       </div>
-      <button onclick="sendFeedback()" style="width:100%;background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);border-radius:10px;padding:13px;color:var(--in);font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">
+      <button onclick="sendFeedback()" style="width:100%;background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);border-radius:10px;padding:13px;color:var(--in);font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:900;cursor:pointer;">
         📧 메일로 보내기
       </button>
     </div>
@@ -1175,7 +1207,7 @@ function renderTaskList(){
         <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">과제명 변경</div>
         <div style="display:flex;gap:8px;">
           <input type="text" value="${t.name}" id="taskname_${i}" style="flex:1;padding:8px 10px;font-size:13px;" />
-          <button onclick="updateTaskName(${i})" style="background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);color:var(--in);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">저장</button>
+          <button onclick="updateTaskName(${i})" style="background:rgba(0,229,160,0.1);border:1px solid rgba(0,229,160,0.3);color:var(--in);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:900;cursor:pointer;white-space:nowrap;">저장</button>
         </div>
       </div>
     </div>`;
@@ -1527,7 +1559,7 @@ function renderCalStats(){
     } else {
       accumHtml = `<div class="stat-value green">±0h</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">딱 맞음</div>`;
     }
-    accumLabel = `누적시간<br><span style="font-size:10px;font-weight:400">${curTaskForStat.name}</span>`;
+    accumLabel = `누적시간<br><span style="font-size:10px;font-weight:700">${curTaskForStat.name}</span>`;
   } else {
     // 과제 없음: 이 달 기준 누적 차이 (평일만)
     let diffMins = 0;
@@ -2145,6 +2177,13 @@ updateHomeUI();
     if(e.target.id==='dpClose') return close();
   });
 })();
+
+// 시간 입력칸 아무 곳이나 눌러도 시계 선택창 열기
+document.addEventListener('click',e=>{
+  const el=e.target.closest('input[type="time"]');
+  if(!el) return;
+  try{ if(typeof el.showPicker==='function') el.showPicker(); }catch(_){}
+});
 </script>
 </body>
 </html>
