@@ -180,6 +180,7 @@ input::placeholder { color: var(--border); }
 .stat-value.green { color: var(--in); } .stat-value.red { color: var(--out); }
 
 /* ── 설정 ── */
+.save-btn:disabled { background: #e3e5ec !important; color: #9aa0b0 !important; border-color: #d5d8e2 !important; cursor: default; }
 .save-btn { width: 100%; margin-top: 8px; background: #eef0f7; border: 1px solid var(--border); border-radius: 10px; padding: 13px; color: var(--text); font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 900; cursor: pointer; }
 
 /* ── 아코디언 ── */
@@ -317,8 +318,8 @@ body, button, input, select, textarea { font-weight: 700; }
   <div class="card">
     <div class="card-title">🔗 구글 시트 연결</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Apps Script 웹앱 URL</div>
-    <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/..." />
-    <button class="save-btn" onclick="saveSettings()">저장</button>
+    <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/..." oninput="refreshSaveBtn()" />
+    <button class="save-btn" id="saveUrlBtn" onclick="saveSettings()">저장</button>
     <button id="sendAllBtn" onclick="sendAllToSheet()" style="width:100%;margin-top:10px;background:#f0eeff;border:1.5px solid #c8c0f5;color:var(--accent);border-radius:12px;padding:12px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:900;cursor:pointer;">📤 전체 기록 시트로 다시 보내기</button>
     <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;">시트에 빠진 기록이 있을 때 눌러주세요. 같은 날짜는 덮어써서 중복되지 않아요.</div>
   </div>
@@ -1730,10 +1731,24 @@ async function sendToSheet(entry){
   } catch(e){ showToast('시트 전송 실패 — 로컬 저장됨','error'); }
 }
 
+function refreshSaveBtn(){
+  const btn=document.getElementById('saveUrlBtn'); if(!btn) return;
+  const v=document.getElementById('scriptUrl').value.trim();
+  const saved=!!settings.scriptUrl && v===settings.scriptUrl;
+  btn.disabled=saved;
+  btn.textContent=saved?'✅ 저장됨':'저장';
+}
+
 function saveSettings(){
-  settings.scriptUrl=document.getElementById('scriptUrl').value.trim();
+  const v=document.getElementById('scriptUrl').value.trim();
+  if(v && !/^https:\/\/script\.google\.com\/.+\/exec(\?.*)?$/.test(v)){
+    showToast('URL이 맞지 않아요. 배포 관리에 있는 "웹앱 URL"(…/exec로 끝나는 주소)을 넣어주세요','error');
+    return;
+  }
+  document.getElementById('scriptUrl').value=v;
+  settings.scriptUrl=v;
   localStorage.setItem('esop_settings',JSON.stringify(settings));
-  updateHomeUI();
+  updateHomeUI(); refreshSaveBtn();
   showToast('✓ 설정 저장됨','success');  // 과제가 비어 있으면 시트에 저장된 과제 자동 불러오기
   if(settings.scriptUrl && taskList.length===0) loadTasksFromSheet(true);
 }
@@ -1815,7 +1830,7 @@ function restoreData(){
   if(data.records) { localStorage.setItem('esop_records',  JSON.stringify(data.records));  records  = data.records; }
   if(data.tasks)   { localStorage.setItem('esop_tasks2',   JSON.stringify(data.tasks));    taskList = data.tasks; }
   if(data.settings){ localStorage.setItem('esop_settings', JSON.stringify(data.settings)); settings = data.settings;
-    if(settings.scriptUrl) document.getElementById('scriptUrl').value = settings.scriptUrl; }
+    if(settings.scriptUrl) document.getElementById('scriptUrl').value = settings.scriptUrl; refreshSaveBtn(); }
 
   document.getElementById('restoreInput').value='';
   document.getElementById('restoreArea').style.display='none';
@@ -2253,6 +2268,7 @@ function sendFeedback(){
 // 초기화
 // ══════════════════════════════════════════
 if(settings.scriptUrl) document.getElementById('scriptUrl').value=settings.scriptUrl;
+refreshSaveBtn();
 updateHomeUI();
 if(settings.scriptUrl){ if(taskList.length===0) loadTasksFromSheet(true); else syncTasksToSheet(); }
 
